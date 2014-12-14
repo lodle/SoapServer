@@ -37,6 +37,7 @@ static const char* s_Namespaces[] = {
 #include "Poco/Net/HTTPRequestHandlerFactory.h"
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/Net/HTTPServerResponse.h"
+#include "Poco/Net/HTTPServerRequest.h"
 
 class SoapTcpServer : 
 	public Poco::Net::TCPServerConnection, 
@@ -123,20 +124,68 @@ private:
 };
 
 
-class MexHTTPRequestHandler : public Poco::Net::HTTPRequestHandler
+class MexHTTPRequestHandler : public Poco::Net::HTTPRequestHandler, protected SoapTcpConnectionI
 {
 public:
 	MexHTTPRequestHandler(const string& wsdl)
 		: m_wsdl(wsdl)
+		, m_soapProtocol(*this)
 	{
+	}
+
+	virtual void SetBindingName(const string& name)
+	{
+		assert(false);
+	}
+
+	virtual void End()
+	{
+		assert(false);
+	}
+
+	virtual void Write(const char* data, size_t size)
+	{
+		m_outbuf += string(data, size);
+	}
+
+	virtual map<string, ServiceBinding>& GetServiceBindings()
+	{
+		assert(false);
+		return *(map<string, ServiceBinding>*)(0);
 	}
 
 	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
 	{
-		cout << "Sending wsdl"  << endl << flush;
-		response.sendFile(m_wsdl, "text/xml");
+		response.setStatusAndReason(Poco::Net::HTTPResponse::HTTP_OK);
+
+		if (request.getContentType() == "application/soap+xml")
+		{
+			string req(std::istreambuf_iterator<char>(request.stream()), std::istreambuf_iterator<char>());
+
+			tinyxml2::XMLDocument reqDoc;
+			reqDoc.Parse(req.c_str());
+
+			tinyxml2::XMLDocument respDoc;
+			respDoc.LoadFile(m_wsdl.c_str());
+
+			cout << "Sending wsdl via soap" << endl << flush;
+
+			m_outbuf = "";
+			m_soapProtocol.SendResponse(reqDoc, respDoc, respDoc.FirstChildElement(), "http://www.w3.org/2005/08/addressing/anonymous");
+			response.sendBuffer(m_outbuf.c_str(), m_outbuf.size());
+
+			m_outbuf = "";
+		}
+		else
+		{
+			cout << "Sending wsdl via http" << endl << flush;
+			response.sendFile(m_wsdl, "text/xml");
+		}		
 	}
 
+	string m_outbuf;
+
+	SoapProtocol m_soapProtocol;
 	string m_wsdl;
 };
 
@@ -167,6 +216,7 @@ public:
 
 	Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request)
 	{
+		cout << "Http request from: " << request.getURI() << endl << flush;
 		return new MexHTTPRequestHandler(m_wsdl);
 	}
 
@@ -199,7 +249,7 @@ void SoapServerInternal::Start()
 	pTcpParams->setMaxQueued(1);
 
 	Poco::Net::HTTPServerParams* pHttpParams = new Poco::Net::HTTPServerParams;
-	pHttpParams->setMaxThreads(1);
+	pHttpParams->setMaxThreads(4);
 
 	//Create your server
 	

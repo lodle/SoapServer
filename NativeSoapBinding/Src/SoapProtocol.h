@@ -25,12 +25,13 @@ public:
 	void HandleRequest(const string& xml, const map<string, ServiceBinding>& bindings);
 
 	void SendRequest(const string& actionUrl, tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* payload, ResponseCallback callback);
+	void SendResponse(const tinyxml2::XMLDocument& reqDoc, tinyxml2::XMLDocument& respDoc, tinyxml2::XMLElement* respBody, const string& respUrl);
 
 	void SetAddressUrl(const string& url);
 
 protected:
 	tinyxml2::XMLElement* GenerateResponseHeader(const tinyxml2::XMLDocument& reqDoc, tinyxml2::XMLDocument& respDoc, const string& respUrl);
-	void SendResponse(const tinyxml2::XMLDocument& reqDoc, tinyxml2::XMLDocument& respDoc, tinyxml2::XMLElement* respBody, const string& respUrl);
+	
 
 	void SendXml(const tinyxml2::XMLDocument& doc);
 	void SendFault(const tinyxml2::XMLDocument& reqDoc, const exception& e);
