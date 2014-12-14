@@ -54,6 +54,9 @@
     <ClInclude Include="Src\SoapInterfaces.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\SoapTcpFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\gsoap.cpp">
@@ -84,6 +87,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\SoapProtocol.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\SoapTcpFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

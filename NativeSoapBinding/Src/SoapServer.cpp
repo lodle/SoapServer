@@ -13,13 +13,16 @@ SoapServer::~SoapServer()
 	delete m_internal;
 }
 
-void SoapServer::Start(function<void()> idleCallback)
+void SoapServer::Start()
 {
-	m_internal->m_idleCallback = idleCallback;
 	m_internal->GenerateWsdl();
-	m_internal->Run();
+	m_internal->Start();
 }
 
+void SoapServer::Stop()
+{
+	m_internal->Stop();
+}
 
 void SoapServer::AddMethod(const string& service, const string& name, const ClassBinding& request, const ClassBinding& response, ProtobufCallback invoke, bool isInput)
 {

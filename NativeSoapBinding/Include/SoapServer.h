@@ -40,7 +40,8 @@ public:
 	SoapServer(int rpcPort, int mexPort);
 	~SoapServer();
 
-	void Start(function<void()> idleCallback);
+	void Start();
+	void Stop();
 
 	template <typename T>
 	void BindProtobufInbound(const shared_ptr<T>& t)

@@ -88,6 +88,7 @@
     <ClInclude Include="Src\SoapInterfaces.h" />
     <ClInclude Include="Src\SoapProtocol.h" />
     <ClInclude Include="Src\SoapServerInternal.h" />
+    <ClInclude Include="Src\SoapTcpFrame.h" />
     <ClInclude Include="Src\std.h" />
     <ClInclude Include="Src\Util.h" />
   </ItemGroup>
@@ -102,6 +103,7 @@
     <ClCompile Include="Src\SoapProtocol.cpp" />
     <ClCompile Include="Src\SoapServer.cpp" />
     <ClCompile Include="Src\SoapServerInternal.cpp" />
+    <ClCompile Include="Src\SoapTcpFrame.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

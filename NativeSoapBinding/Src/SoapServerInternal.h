@@ -20,14 +20,22 @@ namespace tinyxml2
 	class XMLElement;
 }
 
-class SoapServerInternal 
-	: public ::google::protobuf::RpcChannel
-	, protected SoapWriteI
+namespace Poco
+{
+	namespace Net
+	{
+		class TCPServer;
+		class HTTPServer;
+	}
+}
+
+class SoapServerInternal : public ::google::protobuf::RpcChannel
 {
 public:
 	SoapServerInternal(int rpcPort, int mexPort);
 
-	int Run();
+	void Start();
+	void Stop();
 
 	void GenerateWsdl();
 
@@ -41,14 +49,12 @@ public:
 		::google::protobuf::Message* response,
 		::google::protobuf::Closure* done);
 
-	function<void()> m_idleCallback;
 
-	bool OnRead(const char* buff, size_t size);
-	void SetWriter(SoapWriteI* writer);
+	void SetProtocolBinding(const string& url, SoapProtocol* binding);
+
+	map<string, ServiceBinding>& GetServiceBindings();
 
 protected:
-	virtual void write(const char* data, size_t size);
-
 	void OnProtobufResponse(::google::protobuf::Message* response, ::google::protobuf::Closure* done, tinyxml2::XMLElement* respNode);
 
 	size_t ProcessHeader(const char* buff, size_t size);
@@ -56,12 +62,11 @@ protected:
 	size_t ProcessRequest(const char* buff, size_t size);
 
 private:
-	
-	map<char, function<size_t(const char* buff, size_t size)> > m_rawMessageHandlers;
-
 	map<string, ServiceBinding> m_soapMappings;
 	map<string, ClassBinding> m_classBindings;
 	map<string, FieldBinding> m_fieldBindings;
+
+	map<string, SoapProtocol*> m_protocolBindings;
 
 	int m_rpcPort;
 	int m_mexPort;
@@ -70,7 +75,6 @@ private:
 
 	string m_wsdlPath;
 
-	SoapProtocol m_soapProtocol;
-
-	SoapWriteI* m_writer;
+	shared_ptr<Poco::Net::TCPServer> m_soapTcpServer;
+	shared_ptr<Poco::Net::HTTPServer> m_mexHttpServer;
 };

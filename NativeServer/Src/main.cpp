@@ -2,6 +2,8 @@
 #include "SoapServer.h"
 #include "calculator.pb.h"
 
+#include <iostream>
+#include <string>
 
 class CalculatorImpl : public Calculator
 {
@@ -68,6 +70,24 @@ int main()
 	//Bind protobuf to allow us to call client
 	echo = server.BindProtobufOutput<Echo_Stub>();
 
-	//Callback is a hack to get back on this thread
-	server.Start(bind(&InvokePing, echo.get()));
+	server.Start();
+
+	std::cout << "Running soap server on port: 666" << std::endl;
+	std::cout << "Running mex server on: http://localhost:667" << std::endl << std::endl;
+
+	std::cout << "Press return to exit or type ping to send ping...." << std::endl;
+
+	std::string s;
+
+	do
+	{
+		std::getline(cin, s);
+
+		if (s == "ping")
+		{
+			InvokePing(echo.get());
+		}
+	} while (!s.empty());
+
+	server.Stop();
 }

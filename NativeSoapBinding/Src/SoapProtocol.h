@@ -9,7 +9,7 @@ namespace tinyxml2
 	class XMLDocument;
 }
 
-class SoapWriteI;
+class SoapTcpConnectionI;
 class ServiceBinding;
 
 class SoapProtocol
@@ -17,7 +17,7 @@ class SoapProtocol
 public:
 	typedef function<void(tinyxml2::XMLElement*)> ResponseCallback;
 
-	SoapProtocol(SoapWriteI &soap)
+	SoapProtocol(SoapTcpConnectionI &soap)
 		: m_soap(soap)
 	{
 	}
@@ -25,6 +25,8 @@ public:
 	void HandleRequest(const string& xml, const map<string, ServiceBinding>& bindings);
 
 	void SendRequest(const string& actionUrl, tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* payload, ResponseCallback callback);
+
+	void SetAddressUrl(const string& url);
 
 protected:
 	tinyxml2::XMLElement* GenerateResponseHeader(const tinyxml2::XMLDocument& reqDoc, tinyxml2::XMLDocument& respDoc, const string& respUrl);
@@ -39,5 +41,6 @@ protected:
 
 private:
 	map<string, ResponseCallback> m_callbacks;
-	SoapWriteI& m_soap;
+	SoapTcpConnectionI& m_soap;
+	string m_addressUrl;
 };

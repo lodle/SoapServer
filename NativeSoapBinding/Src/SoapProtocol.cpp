@@ -122,7 +122,7 @@ tinyxml2::XMLElement* SoapProtocol::GenerateRequestHeader(tinyxml2::XMLDocument&
 
 	tinyxml2::XMLElement* replyTo = reqDoc.NewElement("a:ReplyTo");
 	tinyxml2::XMLElement* address = reqDoc.NewElement("a:Address");
-	address->SetText("net.tcp://localhost:666/battlenet/Echo");
+	address->SetText(m_addressUrl.c_str());
 	replyTo->LinkEndChild(address);
 
 	header->LinkEndChild(action);
@@ -206,8 +206,8 @@ void SoapProtocol::SendXml(const tinyxml2::XMLDocument& doc)
 	buff[0] = 0x6;
 	size_t count = EncodePackedInt(const_cast<char*>(buff.c_str() + 1), xml.size());
 
-	m_soap.write(buff.c_str(), 1 + count);
-	m_soap.write(xml.c_str(), xml.size());
+	m_soap.Write(buff.c_str(), 1 + count);
+	m_soap.Write(xml.c_str(), xml.size());
 }
 
 void SoapProtocol::SendFault(const tinyxml2::XMLDocument& reqDoc, const std::exception& e)
@@ -235,4 +235,9 @@ void SoapProtocol::SendFault(const tinyxml2::XMLDocument& reqDoc, const std::exc
 	respDoc.LinkEndChild(root);
 
 	SendXml(respDoc);
+}
+
+void SoapProtocol::SetAddressUrl(const string& url)
+{
+	m_addressUrl = url;
 }
