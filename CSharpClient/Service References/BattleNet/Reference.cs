@@ -272,25 +272,26 @@ namespace Microsoft.Samples.NetTcp.BattleNet {
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
     public interface IEchoCallback {
         
-        // CODEGEN: Generating message contract since the wrapper name (PingResponse) of message PingSolicit does not match the default value (Ping)
+        // CODEGEN: Generating message contract since the wrapper name (PingRequest) of message PingSolicit does not match the default value (Ping)
         [System.ServiceModel.OperationContractAttribute(Action="http://Battle.net/IEcho/Ping", ReplyAction="http://Battle.net/IEcho/PingResponse")]
-        global::Microsoft.Samples.NetTcp.BattleNet.PingResponse Ping(global::Microsoft.Samples.NetTcp.BattleNet.PingSolicit request);
-    }
-    
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-    [System.ServiceModel.MessageContractAttribute(WrapperName="PingResponse", WrapperNamespace="http://Battle.net", IsWrapped=true)]
-    public partial class PingSolicit {
-        
-        public PingSolicit() {
-        }
+        global::Microsoft.Samples.NetTcp.BattleNet.PingResponse Ping(global::Microsoft.Samples.NetTcp.BattleNet.PingRequest request);
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="PingRequest", WrapperNamespace="http://Battle.net", IsWrapped=true)]
+    public partial class PingRequest
+    {
+        
+        public PingRequest() {
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="PingResponse", WrapperNamespace="http://Battle.net", IsWrapped=true)]
     public partial class PingResponse {
         
         public PingResponse() {

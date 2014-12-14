@@ -1,0 +1,2 @@
+#TargetFrameworkVersion=v4.0:PlatformToolSet=v140:EnableManagedIncrementalBuild=false:VCToolArchitecture=Native32Bit
+debug_shared|Win32|C:\Users\admin_000\Downloads\poco-1.4.7p1\poco-1.4.7p1\Net\|

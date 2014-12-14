@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="9e5b703f-8daf-49b6-906d-d3c4d6d12371" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="a39f6d7a-f9e1-4992-ba96-bd5315e1acc1" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
   <ClientOptions>
     <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
     <EnableDataBinding>true</EnableDataBinding>
@@ -18,10 +18,10 @@
     <ServiceContractMappings />
   </ClientOptions>
   <MetadataSources>
-    <MetadataSource Address="http://localhost:666/?wsdl" Protocol="http" SourceId="1" />
+    <MetadataSource Address="http://localhost:667/?wsdl" Protocol="http" SourceId="1" />
   </MetadataSources>
   <Metadata>
-    <MetadataFile FileName="CalculatorService.wsdl" MetadataType="Wsdl" ID="abe38f23-bf5a-4542-95a4-fa275529683f" SourceId="1" SourceUrl="http://localhost:666/?wsdl" />
+    <MetadataFile FileName="CalculatorService.wsdl" MetadataType="Wsdl" ID="c908b39c-5b09-4a24-b50c-cb1cf23f65c2" SourceId="1" SourceUrl="http://localhost:667/?wsdl" />
   </Metadata>
   <Extensions>
     <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />

@@ -29,15 +29,14 @@ inline bool ValueFromString<bool>(const char* text)
 }
 
 
-inline size_t DecodePackedInt(char* data, size_t& count)
+inline size_t DecodePackedInt(const char* data, size_t& count)
 {
 	size_t res = 0;
 	count = 0;
 
 	do
 	{
-		res = res << 7;
-		res |= (data[count] & 0x7F);
+		res |= (data[count] & 0x7F) << (count * 7);
 		++count;
 	} while (data[count - 1] & 0x80);
 
@@ -47,6 +46,8 @@ inline size_t DecodePackedInt(char* data, size_t& count)
 inline size_t EncodePackedInt(char* outbuff, size_t num)
 {
 	size_t count = 0;
+
+	char temp[4];
 
 	do
 	{

@@ -48,14 +48,14 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\third_party\gsoap;..\third_party\protobuf-2.6.1\protobuf-2.6.1\src;..\third_party\tinyxml2-2.2.0\tinyxml2-2.2.0;Include;Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\third_party\gsoap;..\third_party\protobuf-2.6.1\protobuf-2.6.1\src;..\third_party\tinyxml2-2.2.0\tinyxml2-2.2.0;Include;Src;C:\Users\admin_000\Downloads\poco-1.4.7p1\poco-1.4.7p1\Net\include;C:\Users\admin_000\Downloads\poco-1.4.7p1\poco-1.4.7p1\Foundation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>"..\third_party\tinyxml2-2.2.0\tinyxml2-2.2.0\tinyxml2\bin\Win32-Debug-Lib\tinyxml2.lib";%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>"..\third_party\tinyxml2-2.2.0\tinyxml2-2.2.0\tinyxml2\bin\Win32-Debug-Lib\tinyxml2.lib";"C:\Users\admin_000\Downloads\poco-1.4.7p1\poco-1.4.7p1\lib\PocoFoundationmdd.lib";"C:\Users\admin_000\Downloads\poco-1.4.7p1\poco-1.4.7p1\lib\PocoNetmdd.lib";%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

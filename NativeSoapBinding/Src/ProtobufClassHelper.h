@@ -27,7 +27,10 @@ public:
 	shared_ptr<google::protobuf::Message> CreateProtobuf();
 	shared_ptr<google::protobuf::Message> CreateProtobuf(tinyxml2::XMLElement* request);
 
+	void FillProtobuf(google::protobuf::Message* obj, tinyxml2::XMLElement* request);
+
 	vector<tinyxml2::XMLElement*> GenerateResponse(const shared_ptr<google::protobuf::Message> &response, tinyxml2::XMLDocument &doc);
+	tinyxml2::XMLElement* GenerateRequest(const google::protobuf::Message &request, tinyxml2::XMLDocument &doc);
 
 	vector<ProtobufFieldHelper> GenerateFieldList();
 

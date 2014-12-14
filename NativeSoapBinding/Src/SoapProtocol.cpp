@@ -57,7 +57,59 @@ void SoapProtocol::HandleRequest(const string & xml, const map<string, ServiceBi
 	}
 }
 
-tinyxml2::XMLElement* SoapProtocol::GenerateSendHeader(const tinyxml2::XMLDocument& reqDoc, tinyxml2::XMLDocument& respDoc, const string& respUrl)
+void SoapProtocol::SendRequest(const string& actionUrl, tinyxml2::XMLDocument &doc, tinyxml2::XMLElement *payload, ResponseCallback callback)
+{
+	string guid = GenerateGuid();
+
+	tinyxml2::XMLElement* root = doc.NewElement("s:Envelope");
+	root->SetAttribute("xmlns:s", "http://schemas.xmlsoap.org/soap/envelope/");
+	root->SetAttribute("xmlns:a", "http://www.w3.org/2005/08/addressing");
+
+	tinyxml2::XMLElement* body = doc.NewElement("s:Body");
+	body->LinkEndChild(payload);
+
+	root->LinkEndChild(GenerateRequestHeader(doc, actionUrl, guid));
+	root->LinkEndChild(body);
+	doc.LinkEndChild(root);
+
+	m_callbacks[guid] = callback;
+	SendXml(doc);
+}
+
+string SoapProtocol::GenerateGuid()
+{
+	return "uuid:ab4c4001-f089-721c-aae6-f51ec37d3501";
+}
+
+tinyxml2::XMLElement* SoapProtocol::GenerateRequestHeader(tinyxml2::XMLDocument& reqDoc, const string& actionUrl, const string& guid)
+{
+	tinyxml2::XMLElement* header = reqDoc.NewElement("s:Header");
+	tinyxml2::XMLElement* action = reqDoc.NewElement("a:Action");
+
+	action->SetAttribute("s:mustUnderstand", "1");
+	action->SetText(actionUrl.c_str());
+
+	tinyxml2::XMLElement* mid = reqDoc.NewElement("a:MessageID");
+	mid->SetText(guid.c_str());
+
+	tinyxml2::XMLElement* to = reqDoc.NewElement("a:To");
+	to->SetAttribute("s:mustUnderstand", "1");
+	to->SetText("http://www.w3.org/2005/08/addressing/anonymous");
+
+	tinyxml2::XMLElement* replyTo = reqDoc.NewElement("a:ReplyTo");
+	tinyxml2::XMLElement* address = reqDoc.NewElement("a:Address");
+	address->SetText("net.tcp://localhost:666/battlenet/Echo");
+	replyTo->LinkEndChild(address);
+
+	header->LinkEndChild(action);
+	header->LinkEndChild(mid);
+	header->LinkEndChild(replyTo);
+	header->LinkEndChild(to);
+
+	return header;
+}
+
+tinyxml2::XMLElement* SoapProtocol::GenerateResponseHeader(const tinyxml2::XMLDocument& reqDoc, tinyxml2::XMLDocument& respDoc, const string& respUrl)
 {
 	string messageId;
 	string toAddress;
@@ -81,8 +133,8 @@ tinyxml2::XMLElement* SoapProtocol::GenerateSendHeader(const tinyxml2::XMLDocume
 	action->SetAttribute("s:mustUnderstand", "1");
 	action->SetText(respUrl.c_str());
 
-	tinyxml2::XMLElement* mid = respDoc.NewElement("a:MessageId");
-	mid->SetText("urn:uuid:C622CE58-495C-427D-A4D0-F8C8B03AC377");
+	tinyxml2::XMLElement* mid = respDoc.NewElement("a:MessageID");
+	mid->SetText(GenerateGuid().c_str());
 
 	tinyxml2::XMLElement* relatesTo = respDoc.NewElement("a:RelatesTo");
 	relatesTo->SetText(messageId.c_str());
@@ -105,7 +157,7 @@ void SoapProtocol::SendResponse(const tinyxml2::XMLDocument& reqDoc, tinyxml2::X
 	root->SetAttribute("xmlns:s", "http://schemas.xmlsoap.org/soap/envelope/");
 	root->SetAttribute("xmlns:a", "http://www.w3.org/2005/08/addressing");
 
-	root->LinkEndChild(GenerateSendHeader(reqDoc, respDoc, respUrl));
+	root->LinkEndChild(GenerateResponseHeader(reqDoc, respDoc, respUrl));
 	root->LinkEndChild(respBody);
 	respDoc.LinkEndChild(root);
 
@@ -154,7 +206,7 @@ void SoapProtocol::SendFault(const tinyxml2::XMLDocument& reqDoc, const std::exc
 	fault->LinkEndChild(faultstring);
 	body->LinkEndChild(fault);
 
-	root->LinkEndChild(GenerateSendHeader(reqDoc, respDoc, ""));
+	root->LinkEndChild(GenerateResponseHeader(reqDoc, respDoc, ""));
 	root->LinkEndChild(body);
 	respDoc.LinkEndChild(root);
 

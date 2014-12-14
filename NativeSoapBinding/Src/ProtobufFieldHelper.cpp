@@ -16,38 +16,38 @@ ProtobufFieldHelper::ProtobufFieldHelper(const google::protobuf::FieldDescriptor
 {
 }
 
-void ProtobufFieldHelper::SetValueToObj(shared_ptr<google::protobuf::Message>& obj, tinyxml2::XMLElement* element)
+void ProtobufFieldHelper::SetValueToObj(google::protobuf::Message* obj, tinyxml2::XMLElement* element)
 {
 	const google::protobuf::Reflection& r = *obj->GetReflection();
 
 	switch (m_descriptor->cpp_type())
 	{
 	case google::protobuf::FieldDescriptor::CPPTYPE_INT32:
-		r.SetInt32(obj.get(), m_descriptor, ValueFromString<int32_t>(element->GetText()));
+		r.SetInt32(obj, m_descriptor, ValueFromString<int32_t>(element->GetText()));
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
-		r.SetInt64(obj.get(), m_descriptor, ValueFromString<int64_t>(element->GetText()));
+		r.SetInt64(obj, m_descriptor, ValueFromString<int64_t>(element->GetText()));
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_UINT32:
-		r.SetUInt32(obj.get(), m_descriptor, ValueFromString<uint32_t>(element->GetText()));
+		r.SetUInt32(obj, m_descriptor, ValueFromString<uint32_t>(element->GetText()));
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
-		r.SetUInt64(obj.get(), m_descriptor, ValueFromString<uint64_t>(element->GetText()));
+		r.SetUInt64(obj, m_descriptor, ValueFromString<uint64_t>(element->GetText()));
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE:
-		r.SetDouble(obj.get(), m_descriptor, ValueFromString<double>(element->GetText()));
+		r.SetDouble(obj, m_descriptor, ValueFromString<double>(element->GetText()));
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_FLOAT:
-		r.SetFloat(obj.get(), m_descriptor, ValueFromString<float>(element->GetText()));
+		r.SetFloat(obj, m_descriptor, ValueFromString<float>(element->GetText()));
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_BOOL:
-		r.SetBool(obj.get(), m_descriptor, ValueFromString<bool>(element->GetText()));
+		r.SetBool(obj, m_descriptor, ValueFromString<bool>(element->GetText()));
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_ENUM:
@@ -55,7 +55,7 @@ void ProtobufFieldHelper::SetValueToObj(shared_ptr<google::protobuf::Message>& o
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_STRING:
-		r.SetString(obj.get(), m_descriptor, element->GetText());
+		r.SetString(obj, m_descriptor, element->GetText());
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
@@ -68,40 +68,40 @@ void ProtobufFieldHelper::SetValueToObj(shared_ptr<google::protobuf::Message>& o
 	}
 }
 
-void ProtobufFieldHelper::SetValueToXml(const shared_ptr<google::protobuf::Message>& obj, tinyxml2::XMLElement* element)
+void ProtobufFieldHelper::SetValueToXml(const google::protobuf::Message& obj, tinyxml2::XMLElement* element)
 {
-	const google::protobuf::Reflection& r = *obj->GetReflection();
+	const google::protobuf::Reflection& r = *obj.GetReflection();
 
 	string value;
 
 	switch (m_descriptor->cpp_type())
 	{
 	case google::protobuf::FieldDescriptor::CPPTYPE_INT32:
-		value = ValueToString<int32_t>(r.GetInt32(*obj.get(), m_descriptor));
+		value = ValueToString<int32_t>(r.GetInt32(obj, m_descriptor));
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
-		value = ValueToString<int64_t>(r.GetInt64(*obj.get(), m_descriptor));
+		value = ValueToString<int64_t>(r.GetInt64(obj, m_descriptor));
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_UINT32:
-		value = ValueToString<uint32_t>(r.GetUInt32(*obj.get(), m_descriptor));
+		value = ValueToString<uint32_t>(r.GetUInt32(obj, m_descriptor));
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
-		value = ValueToString<uint64_t>(r.GetUInt64(*obj.get(), m_descriptor));
+		value = ValueToString<uint64_t>(r.GetUInt64(obj, m_descriptor));
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE:
-		value = ValueToString<double>(r.GetDouble(*obj.get(), m_descriptor));
+		value = ValueToString<double>(r.GetDouble(obj, m_descriptor));
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_FLOAT:
-		value = ValueToString<float>(r.GetFloat(*obj.get(), m_descriptor));
+		value = ValueToString<float>(r.GetFloat(obj, m_descriptor));
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_BOOL:
-		value = ValueToString<bool>(r.GetBool(*obj.get(), m_descriptor));
+		value = ValueToString<bool>(r.GetBool(obj, m_descriptor));
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_ENUM:
@@ -109,7 +109,7 @@ void ProtobufFieldHelper::SetValueToXml(const shared_ptr<google::protobuf::Messa
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_STRING:
-		value = r.GetString(*obj.get(), m_descriptor);
+		value = r.GetString(obj, m_descriptor);
 		break;
 
 	case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:

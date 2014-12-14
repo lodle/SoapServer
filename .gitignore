@@ -26,3 +26,8 @@
 *.exe
 *.out
 *.app
+NativeSoapBinding/Debug/
+NativeSoap.sln.ide/
+CSharpClient/bin/client.exe.config
+NativeServer/Debug/NativeServer.tlog/CL.read.1.tlog
+Debug/

@@ -79,8 +79,8 @@
   </wsdl:portType>
   <wsdl:portType name="IEcho">
     <wsdl:operation name="Ping">
-      <wsdl:output wsaw:Action="http://Battle.net/IEcho/Ping" message="tns:IEcho_Ping_PingResponse_Response" />
-      <wsdl:input wsaw:Action="http://Battle.net/IEcho/PingResponse" message="tns:IEcho_Ping_PingRequest_Request" />
+      <wsdl:output wsaw:Action="http://Battle.net/IEcho/Ping" message="tns:IEcho_Ping_PingRequest_Request" />
+      <wsdl:input wsaw:Action="http://Battle.net/IEcho/PingResponse" message="tns:IEcho_Ping_PingResponse_Response" />
     </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="CalculatorService" type="tns:ICalculator">

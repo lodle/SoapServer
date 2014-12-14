@@ -86,34 +86,28 @@ tinyxml2::XMLElement* FunctionBinding::GenerateWsdlOperaton(const string& prefix
 	tinyxml2::XMLElement* operation = doc->NewElement("wsdl:operation");
 	operation->SetAttribute("name", m_name.c_str());
 
-	string inputPostfix = "";
-	string outputPostfix = "Response";
-
-	if (!m_isInput)
-	{
-		inputPostfix = "Response";
-		outputPostfix = "";
-	}
-
-	tinyxml2::XMLElement* input = doc->NewElement("wsdl:input");
-	input->SetAttribute("wsaw:Action", (string("http://Battle.net/") + prefix + "/" + m_name + inputPostfix).c_str());
-	input->SetAttribute("message", (string("tns:") + prefix + "_" + m_name + "_" + m_requestBinding.GetName() + "_Request").c_str());
-
-
-	tinyxml2::XMLElement* output = doc->NewElement("wsdl:output");
-	output->SetAttribute("wsaw:Action", (string("http://Battle.net/") + prefix + "/" + m_name + outputPostfix).c_str());
-	output->SetAttribute("message", (string("tns:") + prefix + "_" + m_name + "_" + m_responseBinding.GetName() + "_Response").c_str());
+	tinyxml2::XMLElement* input;
+	tinyxml2::XMLElement* output;
 
 	if (m_isInput)
 	{
-		operation->LinkEndChild(input);
-		operation->LinkEndChild(output);
+		input = doc->NewElement("wsdl:input");
+		output = doc->NewElement("wsdl:output");
 	}
 	else
 	{
-		operation->LinkEndChild(output);
-		operation->LinkEndChild(input);
+		input = doc->NewElement("wsdl:output");
+		output = doc->NewElement("wsdl:input");
 	}
+
+	input->SetAttribute("wsaw:Action", (string("http://Battle.net/") + prefix + "/" + m_name).c_str());
+	input->SetAttribute("message", (string("tns:") + prefix + "_" + m_name + "_" + m_requestBinding.GetName() + "_Request").c_str());
+
+	output->SetAttribute("wsaw:Action", (string("http://Battle.net/") + prefix + "/" + m_name + "Response").c_str());
+	output->SetAttribute("message", (string("tns:") + prefix + "_" + m_name + "_" + m_responseBinding.GetName() + "_Response").c_str());
+
+	operation->LinkEndChild(input);
+	operation->LinkEndChild(output);
 
 	return operation;
 }

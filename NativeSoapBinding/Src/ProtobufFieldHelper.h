@@ -21,8 +21,8 @@ class ProtobufFieldHelper
 public:
 	ProtobufFieldHelper(const google::protobuf::FieldDescriptor* descriptor);
 
-	void SetValueToObj(shared_ptr<google::protobuf::Message>& obj, tinyxml2::XMLElement* element);
-	void SetValueToXml(const shared_ptr<google::protobuf::Message>& obj, tinyxml2::XMLElement* element);
+	void SetValueToObj(google::protobuf::Message* obj, tinyxml2::XMLElement* element);
+	void SetValueToXml(const google::protobuf::Message& obj, tinyxml2::XMLElement* element);
 
 	string GetName();
 

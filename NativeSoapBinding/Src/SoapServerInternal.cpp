@@ -23,110 +23,231 @@ static const char* s_Namespaces[] = {
 	0, 0
 };
 
+
+#define POCO_STATIC
+
+#include "Poco/Net/TCPServer.h"
+#include "Poco/Net/TCPServerParams.h"
+#include "Poco/Net/TCPServerConnectionFactory.h"
+#include "Poco/Net/TCPServerConnection.h"
+#include "Poco/Net/Socket.h"
+
+#include "Poco/Net/HTTPServer.h"
+#include "Poco/Net/HTTPRequestHandlerFactory.h"
+#include "Poco/Net/HTTPRequestHandler.h"
+#include "Poco/Net/HTTPServerResponse.h"
+
+class SoapTcpServer : 
+	public Poco::Net::TCPServerConnection, 
+	protected SoapWriteI
+{
+public:
+	SoapTcpServer(const Poco::Net::StreamSocket& s, SoapServerInternal* internal)
+		: Poco::Net::TCPServerConnection(s)
+		, m_internal(internal)
+	{
+		m_internal->SetWriter(this);
+	}
+
+	~SoapTcpServer()
+	{
+		m_internal->SetWriter(0);
+	}
+
+	virtual void write(const char* data, size_t size)
+	{
+		
+		int sent = socket().sendBytes(data, size);
+		cout << "Sent " << sent << " of " << size << " bytes" << endl << flush;
+	}
+
+	void run()
+	{
+		cout << "New connection from: " << socket().peerAddress().host().toString() << endl << flush;
+
+		bool isOpen = true;
+
+		Poco::Timespan timeOut(10, 0);
+		char buffer[16000];
+
+		while (isOpen) 
+		{
+			if (socket().poll(timeOut, Poco::Net::Socket::SELECT_READ) == true) 
+			{
+				int nBytes = -1;
+
+				try 
+				{
+					nBytes = socket().receiveBytes(buffer, sizeof(buffer));
+					cout << "Recv " << nBytes << " bytes" << endl << flush;
+					m_internal->OnRead(buffer, nBytes);
+				}
+				catch (Poco::Exception& exc) 
+				{
+					//Handle your network errors.
+					cerr << "Network error: " << exc.displayText() << endl;
+					isOpen = false;
+				}
+			}
+		}
+
+		cout << "Connection finished!" << endl << flush;
+	}
+
+	SoapServerInternal* m_internal;
+};
+
+
+class MexHTTPRequestHandler : public Poco::Net::HTTPRequestHandler
+{
+public:
+	MexHTTPRequestHandler(const string& wsdl)
+		: m_wsdl(wsdl)
+	{
+	}
+
+	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
+	{
+		cout << "Sending wsdl"  << endl << flush;
+		response.sendFile(m_wsdl, "text/xml");
+	}
+
+	string m_wsdl;
+};
+
+
+class TCPServerConnectionFactorySoap : public Poco::Net::TCPServerConnectionFactory
+{
+public:
+	TCPServerConnectionFactorySoap(SoapServerInternal* internal)
+		: m_internal(internal)
+	{
+	}
+
+	Poco::Net::TCPServerConnection* createConnection(const Poco::Net::StreamSocket& socket)
+	{
+		return new SoapTcpServer(socket, m_internal);
+	}
+
+	SoapServerInternal* m_internal;
+};
+
+class MexHTTPRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory
+{
+public:
+	MexHTTPRequestHandlerFactory(const string& wsdl)
+		: m_wsdl(wsdl)
+	{
+	}
+
+	Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request)
+	{
+		return new MexHTTPRequestHandler(m_wsdl);
+	}
+
+	string m_wsdl;
+};
+
+
+
 SoapServerInternal::SoapServerInternal(int rpcPort, int mexPort)
 	: m_rpcPort(rpcPort)
 	, m_mexPort(mexPort)
 	, m_wsdlPath("SoapServer.wsdl")
 	, m_soapProtocol(*this)
+	, m_writer(0)
 {
-	soap_init2(&soap, SOAP_IO_KEEPALIVE, SOAP_IO_KEEPALIVE);
-
-	soap.user = this;
-	soap.port = m_rpcPort;
-	soap.fget = http_get;
-	soap.cookie_domain = "localhost";
-	soap.cookie_path = "/";
+	m_rawMessageHandlers[0x0] = bind(&SoapServerInternal::ProcessHeader, this, placeholders::_1, placeholders::_2);
+	m_rawMessageHandlers[0x6] = bind(&SoapServerInternal::ProcessRequest, this, placeholders::_1, placeholders::_2);
+	m_rawMessageHandlers[0x7] = bind(&SoapServerInternal::ProcessEnd, this, placeholders::_1, placeholders::_2);
 }
 
 int SoapServerInternal::Run()
 {
-	int master = soap_bind(&soap, "localhost", soap.port, 100);
+	Poco::Net::ServerSocket mex(m_mexPort);
+	Poco::Net::ServerSocket svs(m_rpcPort);
 
-	if (master < 0)
+	//Configure some server params.
+	Poco::Net::TCPServerParams* pTcpParams = new Poco::Net::TCPServerParams();
+	pTcpParams->setMaxThreads(1);
+	pTcpParams->setMaxQueued(1);
+
+	Poco::Net::HTTPServerParams* pHttpParams = new Poco::Net::HTTPServerParams;
+	pHttpParams->setMaxQueued(1);
+	pHttpParams->setMaxThreads(1);
+
+	//Create your server
+	Poco::Net::TCPServer soapTcpServer(new TCPServerConnectionFactorySoap(this), svs, pTcpParams);
+	Poco::Net::HTTPServer mexHttpServer(new MexHTTPRequestHandlerFactory(m_wsdlPath), mex, pHttpParams);
+
+	soapTcpServer.start();
+	mexHttpServer.start();
+
+	m_running = true;
+
+	while (m_running)
 	{
-		soap_print_fault(&soap, stderr);
-		return -1;
+		Sleep(1000);
 	}
 
-	fprintf(stderr, "Socket connection success\n");
-
-	while (1)
-	{
-		int client = soap_accept(&soap);
-
-		if (client < 0)
-		{
-			soap_print_fault(&soap, stderr);
-			return -2;
-		}
-
-		fprintf(stderr, "Client connected\n");
-		soap_serve(&soap);
-		soap_end(&soap);
-	}
-
+	soapTcpServer.stop();
+	mexHttpServer.stop();
 	return 0;
 }
 
 
-int SoapServerInternal::soap_serve(struct soap *soap)
+bool SoapServerInternal::OnRead(const char* buff, size_t size)
 {
-	unsigned int k = soap->max_keep_alive;
+	size_t read = 0;
 
-	do
+	while (read < size)
 	{
-		if (soap->max_keep_alive > 0 && !--k)
-			soap->keep_alive = 0;
+		const char* b = buff + read;
+		size_t s = size - read;
 
-		soap_begin(soap);
+		map<char, function<size_t(const char* buff, size_t size)> >::iterator it = m_rawMessageHandlers.find(b[0]);
 
-		if (soap_begin_recv(soap))
+		if (it == m_rawMessageHandlers.end())
 		{
-			if (soap->error >= SOAP_STOP)
-				continue;
-
-			return soap->error;
+			return false;
 		}
 
-		soap->bufidx = 0;
+		read += it->second(b, s);
+	}
 
-		if (!ProcessHeader())
-		{
-			return SOAP_ERR;
-		}
+	if (m_idleCallback)
+	{
+		m_idleCallback();
+	}
 
-		if (soap_serve_request() || (soap->fserveloop && soap->fserveloop(soap)))
-		{
-			return soap_send_fault(soap);
-		}
-
-	} while (soap->keep_alive);
-
-	return SOAP_OK;
+	return true;
 }
 
 
 
-bool SoapServerInternal::ProcessHeader()
+size_t SoapServerInternal::ProcessHeader(const char* buff, size_t size)
 {
+	size_t buffidx = 0;
+
 	_declspec(align(1)) struct VersionRecord
 	{
 		char RecordType;
 		char MajorVersion;
 		char MinorVersion;
 
-		bool IsValid()
+		bool IsValid() const
 		{
 			return RecordType == 0x00 && MajorVersion == 0x01 && MinorVersion == 0x00;
 		}
 	};
 
-	struct VersionRecord* v = reinterpret_cast<VersionRecord*>(soap.buf + soap.bufidx);
-	soap.bufidx += 3;
+	const struct VersionRecord* v = reinterpret_cast<const VersionRecord*>(buff);
+	buffidx += 3;
 
 	if (!v->IsValid())
 	{
-		return false;
+		assert(false);
+		return buffidx;
 	}
 
 	_declspec(align(1)) struct ModeRecord
@@ -134,51 +255,53 @@ bool SoapServerInternal::ProcessHeader()
 		char RecordType;
 		char Mode;
 
-		bool IsValid()
+		bool IsValid() const
 		{
 			return RecordType == 0x01 && Mode == 0x02; //Duplex
 		}
 	};
 
-	struct ModeRecord* m = reinterpret_cast<ModeRecord*>(soap.buf + soap.bufidx);
-	soap.bufidx += 2;
+	const struct ModeRecord* m = reinterpret_cast<const ModeRecord*>(buff + buffidx);
+	buffidx += 2;
 
 	if (!m->IsValid())
 	{
-		return false;
+		assert(false);
+		return buffidx;
 	}
 
 
 	_declspec(align(1)) struct ViaRecord
 	{
 		char RecordType;
-		char ViaLength;
+		mutable char ViaLength;
 
-		bool IsValid()
+		bool IsValid() const
 		{
 			return RecordType == 0x02 && ViaLength != 0x00;
 		}
 
-		string GetUrl()
+		string GetUrl() const
 		{
 			size_t count = 0;
 			size_t len = DecodePackedInt(&ViaLength, count) + count;
-			return string(&ViaLength + count, len - 1);
+			return string(&ViaLength + count, len - count);
 		}
 
-		size_t GetSize()
+		size_t GetSize() const
 		{
 			size_t count = 0;
 			return 1 + DecodePackedInt(&ViaLength, count) + count;
 		}
 	};
 
-	struct ViaRecord* via = reinterpret_cast<ViaRecord*>(soap.buf + soap.bufidx);
-	soap.bufidx += via->GetSize();
+	const struct ViaRecord* via = reinterpret_cast<const ViaRecord*>(buff + buffidx);
+	buffidx += via->GetSize();
 
 	if (!via->IsValid())
 	{
-		return false;
+		assert(false);
+		return buffidx;
 	}
 
 	string url = via->GetUrl();
@@ -188,19 +311,21 @@ bool SoapServerInternal::ProcessHeader()
 	{
 		char RecordType;
 		char Encoding;
+		char PreambleEnd;
 
-		bool IsValid()
+		bool IsValid() const
 		{
-			return RecordType == 0x03; //UTF8
+			return RecordType == 0x03 && Encoding == 0x0 && PreambleEnd == 0x0C; //UTF8
 		}
 	};
 
-	struct EnvelopeEncodingRecord* e = reinterpret_cast<EnvelopeEncodingRecord*>(soap.buf + soap.bufidx);
-	soap.bufidx += 2;
+	const struct EnvelopeEncodingRecord* e = reinterpret_cast<const EnvelopeEncodingRecord*>(buff + buffidx);
+	buffidx += 3;
 
 	if (!e->IsValid())
 	{
-		return false;
+		assert(false);
+		return buffidx;
 	}
 
 	_declspec(align(1)) struct PreambleAck
@@ -214,83 +339,52 @@ bool SoapServerInternal::ProcessHeader()
 	};
 
 	struct PreambleAck p;
-	return soap_send_raw(&soap, (char*)&p, 1) == SOAP_OK;
+	write((char*)&p, 1);
+	return buffidx;
 }
 
-int SoapServerInternal::soap_serve_request()
+size_t SoapServerInternal::ProcessEnd(const char* buff, size_t size)
 {
-	while (true)
+	assert(buff[0] == 0x07);
+
+	static char end[1] = { 0x07 };
+	write(end, 1);
+	return 1;
+}
+
+size_t SoapServerInternal::ProcessRequest(const char* buff, size_t size)
+{
+	assert(buff[0] == 0x06);
+
+	_declspec(align(1)) struct SizedEnvelopRecord
 	{
-		if (m_idleCallback)
+		char RecordType;
+		char Size;
+
+		bool IsValid() const
 		{
-			m_idleCallback();
+			return RecordType == 0x06 && Size != 0x00;
 		}
 
-		if (soap_begin_recv(&soap))
+		string GetData() const
 		{
-			if (soap.error >= SOAP_STOP)
-				continue;
-
-			return soap.error;
+			size_t count = 0;
+			size_t len = DecodePackedInt(&Size, count) + count;
+			return string(&Size + count, len - count);
 		}
 
-		soap.bufidx = 0;
-
-		while (soap.bufidx < soap.buflen)
+		size_t GetSize() const
 		{
-			assert(soap.buf[0] == 0x06);
-
-			_declspec(align(1)) struct SizedEnvelopRecord
-			{
-				char RecordType;
-				char Size;
-
-				bool IsValid()
-				{
-					return RecordType == 0x06 && Size != 0x00;
-				}
-
-				bool IsEndRecord()
-				{
-					return RecordType == 0x07;
-				}
-
-				string GetData()
-				{
-					size_t count = 0;
-					size_t len = DecodePackedInt(&Size, count) + count;
-					return string(&Size + count, len - 1);
-				}
-
-				size_t GetSize()
-				{
-					size_t count = 0;
-					return 1 + DecodePackedInt(&Size, count) + count;
-				}
-			};
-
-			struct SizedEnvelopRecord* e = reinterpret_cast<SizedEnvelopRecord*>(soap.buf + soap.bufidx);
-
-			if (e->IsEndRecord())
-			{
-				static char end[1] = { 0x07 };
-				soap_send_raw(&soap, end, 1);
-				soap.keep_alive = 0;
-				return 0;
-			}
-
-			soap.bufidx += e->GetSize();
-
-			assert(e->IsValid());
-
-			m_soapProtocol.HandleRequest(e->GetData(), m_soapMappings);
-
-			string data = e->GetData();
-
+			size_t count = 0;
+			return 1 + DecodePackedInt(&Size, count) + count;
 		}
-	}
+	};
 
-	return soap.error = SOAP_NO_METHOD;
+	const struct SizedEnvelopRecord* e = reinterpret_cast<const SizedEnvelopRecord*>(buff);
+
+	assert(e->IsValid());
+	m_soapProtocol.HandleRequest(e->GetData(), m_soapMappings);
+	return e->GetSize();
 }
 
 
@@ -360,7 +454,7 @@ void SoapServerInternal::AddMethod(const string& service, const string& name, co
 	}
 }
 
-const ClassBinding& SoapServerInternal::GetClassBinding(const ::google::protobuf::Descriptor* descriptor)
+ClassBinding& SoapServerInternal::GetClassBinding(const ::google::protobuf::Descriptor* descriptor)
 {
 	if (m_classBindings.find(descriptor->full_name()) == m_classBindings.end())
 	{
@@ -393,39 +487,18 @@ const FieldBinding& SoapServerInternal::GetFieldBinding(const ::google::protobuf
 	return m_fieldBindings[descriptor->full_name()];
 }
 
-
-int SoapServerInternal::http_get(struct soap *soap)
+void SoapServerInternal::OnProtobufResponse(::google::protobuf::Message* response, ::google::protobuf::Closure* done, tinyxml2::XMLElement* respNode)
 {
-	return static_cast<SoapServerInternal*>(soap->user)->http_get();
-}
+	assert(response->GetDescriptor()->name() == respNode->Value());
 
-int SoapServerInternal::http_get()
-{
-	FILE *fd = NULL;
-	char *s = strchr(soap.path, '?');
+	ClassBinding& binding = GetClassBinding(response->GetDescriptor());
+	binding.GetProtobufHelper()->FillProtobuf(response, respNode->FirstChildElement());
 
-	if (!s || strcmp(s, "?wsdl"))
-		return SOAP_GET_METHOD;
-
-	fd = fopen(m_wsdlPath.c_str(), "rb"); // open WSDL file to copy 
-	if (!fd)
-		return 404; // return HTTP not found error 
-	soap.http_content = "text/xml"; // HTTP header with text/xml content 
-	soap_response(&soap, SOAP_FILE);
-
-	for (;;)
+	if (done)
 	{
-		size_t r = fread(soap.tmpbuf, 1, sizeof(soap.tmpbuf), fd);
-		if (!r)
-			break;
-		if (soap_send_raw(&soap, soap.tmpbuf, r))
-			break; // can't send, but little we can do about that 
+		done->Run();
 	}
-	fclose(fd);
-	soap_end_send(&soap);
-	return SOAP_OK;
 }
-
 
 
 void SoapServerInternal::CallMethod(const ::google::protobuf::MethodDescriptor* method,
@@ -434,12 +507,54 @@ void SoapServerInternal::CallMethod(const ::google::protobuf::MethodDescriptor* 
 	::google::protobuf::Message* response,
 	::google::protobuf::Closure* done)
 {
+	string serviceName = method->service()->name();
+	string methodName = method->name();
+
+	try
+	{
+		map<string, ServiceBinding>::iterator it = m_soapMappings.find(serviceName);
+
+		if (it == m_soapMappings.end())
+		{
+			throw exception("Cant find service binding");
+		}
+
+		tinyxml2::XMLDocument doc;
 
 
+		ClassBinding& binding = GetClassBinding(request->GetDescriptor());
+		tinyxml2::XMLElement* resp = binding.GetProtobufHelper()->GenerateRequest(*request, doc);
 
+		string actionUrl = it->second.GetActionUrl() + "/" + methodName;
+		m_soapProtocol.SendRequest(actionUrl, doc, resp, bind(&SoapServerInternal::OnProtobufResponse, this, response, done, placeholders::_1));
+	}
+	catch (exception &e)
+	{
+		if (controller)
+		{
+			controller->SetFailed(e.what());
+			controller->Failed();
+		}
+	}
+	catch (...)
+	{
+		if (controller)
+		{
+			controller->SetFailed("Unknown");
+			controller->Failed();
+		}
+	}
 }
 
 void SoapServerInternal::write(const char* data, size_t size)
 {
-	soap_send_raw(&soap, data, size);
+	if (m_writer)
+	{
+		m_writer->write(data, size);
+	}
+}
+
+void SoapServerInternal::SetWriter(SoapWriteI* writer)
+{
+	m_writer = writer;
 }
