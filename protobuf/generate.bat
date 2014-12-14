@@ -1,0 +1,1 @@
+..\third_party\protoc-2.6.1-win32\protoc.exe --proto_path=..\third_party\protobuf-2.6.1 --proto_path=..\protobuf --cpp_out=. ..\protobuf\calculator.proto

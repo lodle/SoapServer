@@ -1,0 +1,33 @@
+option cc_generic_services = true;
+
+message CalculatorRequest 
+{
+  required double  param1 = 1;
+  required double  param2 = 2;
+}
+
+message CalculatorResponse 
+{
+  required double  result = 1;
+}
+
+message PingRequest
+{
+}
+
+message PingResponse
+{
+}
+
+service Calculator 
+{
+  rpc Add (CalculatorRequest) returns (CalculatorResponse);
+  rpc Subtract (CalculatorRequest) returns (CalculatorResponse);
+  rpc Multiply (CalculatorRequest) returns (CalculatorResponse);
+  rpc Divide (CalculatorRequest) returns (CalculatorResponse);
+}
+
+service Echo
+{
+  rpc Ping (PingRequest) returns (PingResponse);
+}
