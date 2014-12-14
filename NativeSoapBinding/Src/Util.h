@@ -47,8 +47,6 @@ inline size_t EncodePackedInt(char* outbuff, size_t num)
 {
 	size_t count = 0;
 
-	char temp[4];
-
 	do
 	{
 		outbuff[count] = num & 0x7F;

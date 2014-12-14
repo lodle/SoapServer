@@ -14,46 +14,70 @@ void SoapProtocol::HandleRequest(const string & xml, const map<string, ServiceBi
 
 	tinyxml2::XMLHandle handle(doc.RootElement());
 	tinyxml2::XMLElement* action = handle.FirstChildElement("s:Header").FirstChildElement("a:Action").ToElement();
+	tinyxml2::XMLElement* relatesTo = handle.FirstChildElement("s:Header").FirstChildElement("a:RelatesTo").ToElement();
 
 	string actionUrl = "";
+	string messageId = "";
 
 	if (action)
 	{
 		actionUrl = action->GetText();
 	}
 
-	tinyxml2::XMLElement* reqBody = handle.FirstChildElement("s:Body").FirstChildElement().ToElement();
-
-	map<string, ServiceBinding>::const_iterator it = bindings.begin();
-
-	for (; it != bindings.end(); ++it)
+	if (relatesTo)
 	{
-		if (actionUrl.find(it->second.GetActionUrl()) == 0)
-		{
-			tinyxml2::XMLDocument respDoc;
-			tinyxml2::XMLElement* respBody = respDoc.NewElement("s:Body");
-
-			try
-			{
-				const_cast<ServiceBinding*>(&it->second)->Invoke(actionUrl, respDoc, reqBody, respBody);
-				SendResponse(doc, respDoc, respBody, actionUrl + "Response");
-			}
-			catch (std::exception& e)
-			{
-				SendFault(doc, e);
-			}
-			catch (...)
-			{
-				SendFault(doc, std::exception("Unhandled exception on invoke"));
-			}
-
-			break;
-		}
+		messageId = relatesTo->GetText();
 	}
 
-	if (it == bindings.end())
+	if (!messageId.empty())
 	{
-		SendFault(doc, std::exception("Action not understood"));
+		map<string, ResponseCallback>::iterator it = m_callbacks.find(messageId);
+
+		if (it == m_callbacks.end())
+		{
+			SendFault(doc, exception("Failed to find related message"));
+		}
+		else
+		{
+			tinyxml2::XMLElement* body = handle.FirstChildElement("s:Body").FirstChildElement().ToElement();
+			it->second(body);
+		}
+	}
+	else
+	{
+		tinyxml2::XMLElement* reqBody = handle.FirstChildElement("s:Body").FirstChildElement().ToElement();
+
+		map<string, ServiceBinding>::const_iterator it = bindings.begin();
+
+		for (; it != bindings.end(); ++it)
+		{
+			if (actionUrl.find(it->second.GetActionUrl()) == 0)
+			{
+				tinyxml2::XMLDocument respDoc;
+				tinyxml2::XMLElement* respBody = respDoc.NewElement("s:Body");
+
+				try
+				{
+					const_cast<ServiceBinding*>(&it->second)->Invoke(actionUrl, respDoc, reqBody, respBody);
+					SendResponse(doc, respDoc, respBody, actionUrl + "Response");
+				}
+				catch (std::exception& e)
+				{
+					SendFault(doc, e);
+				}
+				catch (...)
+				{
+					SendFault(doc, std::exception("Unhandled exception on invoke"));
+				}
+
+				break;
+			}
+		}
+
+		if (it == bindings.end())
+		{
+			SendFault(doc, std::exception("Action not understood"));
+		}
 	}
 }
 

@@ -5,6 +5,8 @@ class ClassBinding;
 
 #include <string>
 #include <functional>
+#include <memory>
+
 using namespace std;
 
 #include <google/protobuf/message.h>
@@ -14,7 +16,7 @@ typedef function<void(const google::protobuf::Message&, google::protobuf::Messag
 namespace
 {
 	template <typename T>
-	static void CallProtobuf(T* t, const ::google::protobuf::MethodDescriptor* method, const google::protobuf::Message& req, google::protobuf::Message& resp)
+	static void CallProtobuf(shared_ptr<T> t, const ::google::protobuf::MethodDescriptor* method, const google::protobuf::Message& req, google::protobuf::Message& resp)
 	{
 		::google::protobuf::RpcController* controller = 0;
 		::google::protobuf::Closure* closure = 0;
@@ -28,6 +30,7 @@ namespace google
 	namespace protobuf
 	{
 		class RpcChannel;
+		class Service;
 	}
 }
 
@@ -40,22 +43,26 @@ public:
 	void Start(function<void()> idleCallback);
 
 	template <typename T>
-	void BindProtobufInbound(T& t)
+	void BindProtobufInbound(const shared_ptr<T>& t)
 	{
-		BindProtobuf<T>(&t, true);
+		BindProtobuf<T>(t, true);
 	}
 
 	template <typename T>
-	void BindProtobufOutput()
+	shared_ptr<T> BindProtobufOutput()
 	{
 		BindProtobuf<T>(0, false);
+
+		shared_ptr<T> stub(new T(GetRpcChannel()));
+		m_protobufStubs.push_back(stub);
+		return stub;
 	}
 
 	::google::protobuf::RpcChannel* GetRpcChannel();
 
 protected:
 	template <typename T>
-	void BindProtobuf(T* t, bool isInput)
+	void BindProtobuf(const shared_ptr<T>& t, bool isInput)
 	{
 		const ::google::protobuf::ServiceDescriptor* descriptor = T::descriptor();
 
@@ -87,5 +94,6 @@ protected:
 	const ClassBinding& GetClassBinding(const ::google::protobuf::Descriptor* descriptor);
 
 private:
+	vector<shared_ptr<::google::protobuf::Service> > m_protobufStubs;
 	SoapServerInternal *m_internal;
 };

@@ -39,29 +39,35 @@ public:
 	}
 };
 
-static void InvokePing(Echo_Stub* echo)
+static void OnPingResponse(PingResponse* response)
+{
+	delete response;
+}
+
+static void InvokePing(Echo* echo)
 {
 	::google::protobuf::RpcController* controller = 0;
 	::google::protobuf::Closure* closure = 0;
 
 	PingRequest request;
-	PingResponse response;
+	PingResponse* response = new PingResponse();
 
-	echo->Ping(controller, &request, &response, closure);
+	echo->Ping(controller, &request, response, google::protobuf::NewCallback(&OnPingResponse, response));
 }
 
 int main()
 {
-	CalculatorImpl calc;
+	shared_ptr<Calculator> calc(new CalculatorImpl());
+	shared_ptr<Echo> echo;
 
 	SoapServer server(666, 667);
 
-	server.BindProtobufInbound<Calculator>(calc);
-	server.BindProtobufOutput<Echo>();
+	//Bind protobuf to allow client to call us
+	server.BindProtobufInbound(calc);
 
+	//Bind protobuf to allow us to call client
+	echo = server.BindProtobufOutput<Echo_Stub>();
 
-	Echo_Stub echo(server.GetRpcChannel());
-
-
-	server.Start(bind(&InvokePing, &echo));
+	//Callback is a hack to get back on this thread
+	server.Start(bind(&InvokePing, echo.get()));
 }
