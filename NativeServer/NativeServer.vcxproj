@@ -87,7 +87,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\protobuf\calculator.pb.cc" />
-    <ClCompile Include="Src\main.cpp" />
+    <ClCompile Include="Src\main.cpp">
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreprocessToFile>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\protobuf\calculator.pb.h" />

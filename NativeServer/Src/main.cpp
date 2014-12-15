@@ -41,6 +41,64 @@ public:
 	}
 };
 
+
+class NativeCalculatorRequest
+{
+public:
+	double param1;
+	double param2;
+};
+
+class NativeCalculatorResponse
+{
+public:
+	double response;
+};
+
+SoapTypeVisitor& operator<<(SoapTypeVisitor& visitor, const NativeCalculatorRequest& r)
+{
+	visitor << SoapClassVistior(NativeCalculatorRequest) 
+		<< SoapFieldVisitor(r, param1) 
+		<< SoapFieldVisitor(r, param2);
+	return visitor;
+}
+
+SoapTypeVisitor& operator<<(SoapTypeVisitor& visitor, const NativeCalculatorResponse& r)
+{
+	visitor << SoapClassVistior(NativeCalculatorResponse) 
+		<< SoapFieldVisitor(r, response);
+	return visitor;
+}
+
+class NativeCalculator
+{
+public:
+	void Add(const NativeCalculatorRequest& request, NativeCalculatorResponse& response)
+	{
+		response.response = request.param1 + request.param2;
+	}
+
+	void Subtract(const NativeCalculatorRequest& request, NativeCalculatorResponse& response)
+	{
+		response.response = request.param1 - request.param2;
+	}
+
+	void Multiply(const NativeCalculatorRequest& request, NativeCalculatorResponse& response)
+	{
+		response.response = request.param1 * request.param2;
+	}
+
+	void Divide(const NativeCalculatorRequest& request, NativeCalculatorResponse& response)
+	{
+		response.response = request.param1 / request.param2;
+	}
+};
+
+
+
+
+
+
 static void OnPingResponse(PingResponse* response)
 {
 	delete response;
@@ -57,8 +115,11 @@ static void InvokePing(Echo* echo)
 	echo->Ping(controller, &request, response, google::protobuf::NewCallback(&OnPingResponse, response));
 }
 
+
+
 int main()
 {
+	shared_ptr<NativeCalculator> nativeCalc(new NativeCalculator());
 	shared_ptr<Calculator> calc(new CalculatorImpl());
 	shared_ptr<Echo> echo;
 
@@ -66,6 +127,12 @@ int main()
 
 	//Bind protobuf to allow client to call us
 	server.BindProtobufInbound(calc);
+
+	server.BindNativeInbound<NativeCalculator>("NativeCalculator", nativeCalc)
+		.Function("Add", &NativeCalculator::Add)
+		.Function("Subtract", &NativeCalculator::Subtract)
+		.Function("Multiply", &NativeCalculator::Multiply)
+		.Function("Divide", &NativeCalculator::Divide);
 
 	//Bind protobuf to allow us to call client
 	echo = server.BindProtobufOutput<Echo_Stub>();

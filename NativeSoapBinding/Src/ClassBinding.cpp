@@ -3,6 +3,7 @@
 
 #include "tinyxml2.h"
 #include "FieldBinding.h"
+#include "NativeClassHelper.h"
 
 
 ClassBinding::ClassBinding()
@@ -13,6 +14,13 @@ ClassBinding::ClassBinding(const string& name, shared_ptr<ProtobufClassHelper> p
 	: m_name(name)
 	, m_parent(0)
 	, m_protobufHelper(protobufHelper)
+{
+}
+
+ClassBinding::ClassBinding(const string& name, shared_ptr<NativeClassHelper> nativeHelper)
+	: m_name(name)
+	, m_parent(0)
+	, m_nativeHelper(nativeHelper)
 {
 }
 
@@ -52,10 +60,13 @@ string ClassBinding::GetName()
 
 shared_ptr<ProtobufClassHelper> ClassBinding::GetProtobufHelper()
 {
+	assert(m_protobufHelper);
 	return m_protobufHelper;
 }
 
 shared_ptr<NativeClassHelper> ClassBinding::GetNativeHelper()
 {
+	assert(m_nativeHelper);
+	m_nativeHelper->SetClassBinding(this);
 	return m_nativeHelper;
 }

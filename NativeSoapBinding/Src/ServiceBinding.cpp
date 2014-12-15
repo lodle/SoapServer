@@ -16,6 +16,11 @@ void ServiceBinding::AddBinding(const string& name, const ClassBinding& request,
 	m_bindings[name] = FunctionBinding(name, request, response, callback, isInput);
 }
 
+void ServiceBinding::AddBinding(const string& name, const ClassBinding& request, const ClassBinding& response, NativeCallback& callback, bool isInput)
+{
+	m_bindings[name] = FunctionBinding(name, request, response, callback, isInput);
+}
+
 void ServiceBinding::Invoke(const string& actionUrl, tinyxml2::XMLDocument& respDoc, tinyxml2::XMLElement* reqBody, tinyxml2::XMLElement* respBody)
 {
 	string action = actionUrl.substr(GetActionUrl().size() + 1);

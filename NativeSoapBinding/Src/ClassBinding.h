@@ -17,6 +17,7 @@ class ClassBinding
 public:
 	ClassBinding();
 	ClassBinding(const string& name, shared_ptr<ProtobufClassHelper> protobufHelper);
+	ClassBinding(const string& name, shared_ptr<NativeClassHelper> nativeHelper);
 
 	void SetParent(const ClassBinding& parent);
 	void AddField(const FieldBinding& field);
@@ -29,6 +30,8 @@ public:
 	shared_ptr<NativeClassHelper> GetNativeHelper();
 
 private:
+	friend class NativeClassHelper;
+
 	shared_ptr<ProtobufClassHelper> m_protobufHelper;
 	shared_ptr<NativeClassHelper> m_nativeHelper;
 

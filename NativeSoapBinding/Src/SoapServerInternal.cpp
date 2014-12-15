@@ -3,6 +3,8 @@
 #include "tinyxml2.h"
 
 #include "ProtobufClassHelper.h"
+#include "NativeClassHelper.h"
+
 #include "SoapTcpFrame.h"
 
 static const char* s_Namespaces[] = {
@@ -38,6 +40,22 @@ static const char* s_Namespaces[] = {
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/Net/HTTPServerRequest.h"
+
+
+namespace
+{
+	string GetTypeName(const type_info& type)
+	{
+		string name = type.name();
+
+		if (name.find("class ") == 0)
+		{
+			name = string("C") + name.substr(6);
+		}
+
+		return name;
+	}
+}
 
 class SoapTcpServer : 
 	public Poco::Net::TCPServerConnection, 
@@ -325,21 +343,80 @@ void SoapServerInternal::GenerateWsdl()
 	doc.SaveFile(m_wsdlPath.c_str());
 }
 
-void SoapServerInternal::AddMethod(const string& service, const string& name, const ClassBinding& request, const ClassBinding& response, ProtobufCallback callback, bool isInput)
+void SoapServerInternal::AddService(string& serviceName)
 {
-	map<string, ServiceBinding>::iterator it = m_soapMappings.find(service); //
+	string name = serviceName;
+	char num = '1';
 
-	if (it == m_soapMappings.end())
+	map<string, ServiceBinding>::iterator it = m_soapMappings.find(serviceName);
+
+	while (it != m_soapMappings.end())
 	{
-		ServiceBinding sm(service);
-		sm.AddBinding(name, request, response, callback, isInput);
-		m_soapMappings[service] = sm;
+		serviceName = name + num;
+		++num;
+		it = m_soapMappings.find(name);
 	}
-	else
+
+	ServiceBinding sm(serviceName);
+	m_soapMappings[serviceName] = sm;
+}
+
+void SoapServerInternal::AddMethod(const string& serviceName, const string& name, const ClassBinding& request, const ClassBinding& response, NativeCallback callback, bool isInput)
+{
+	map<string, ServiceBinding>::iterator it = m_soapMappings.find(serviceName);
+
+	if (it != m_soapMappings.end())
 	{
 		it->second.AddBinding(name, request, response, callback, isInput);
 	}
+	else
+	{
+		assert(false);
+	}
 }
+
+void SoapServerInternal::AddMethod(const string& serviceName, const string& name, const ClassBinding& request, const ClassBinding& response, ProtobufCallback callback, bool isInput)
+{
+	map<string, ServiceBinding>::iterator it = m_soapMappings.find(serviceName);
+
+	if (it != m_soapMappings.end())
+	{
+		it->second.AddBinding(name, request, response, callback, isInput);
+	}
+	else
+	{
+		assert(false);
+	}
+}
+
+
+bool SoapServerInternal::HasClassBinding(const type_info& type)
+{
+	return m_classBindings.find(GetTypeName(type)) != m_classBindings.end();
+}
+
+const ClassBinding& SoapServerInternal::GetClassBinding(const type_info& type)
+{
+	assert(HasClassBinding(type));
+	return m_classBindings[GetTypeName(type)];
+}
+
+
+void SoapServerInternal::RegisterClassBinding(const type_info& type, vector<const FieldBinding*>& fields, CreateObjectCallback callback)
+{
+	shared_ptr<NativeClassHelper> helper(new NativeClassHelper(callback));
+
+	ClassBinding binding(GetTypeName(type), helper);
+
+	for (size_t x = 0; x < fields.size(); ++x)
+	{
+		m_fieldBindings[fields[x]->GetName()] = *fields[x];
+		binding.AddField(m_fieldBindings[fields[x]->GetName()]);
+	}
+
+	m_classBindings[GetTypeName(type)] = binding;
+}
+
 
 ClassBinding& SoapServerInternal::GetClassBinding(const ::google::protobuf::Descriptor* descriptor)
 {
@@ -372,6 +449,17 @@ const FieldBinding& SoapServerInternal::GetFieldBinding(const ::google::protobuf
 	}
 
 	return m_fieldBindings[descriptor->full_name()];
+}
+
+const FieldBinding& SoapServerInternal::GetFieldBinding(const string& name, const string& type, size_t offset, size_t size)
+{
+	if (m_fieldBindings.find(name) == m_fieldBindings.end())
+	{
+		FieldBinding binding(name, type, offset, size);
+		m_fieldBindings[name] = binding;
+	}
+
+	return m_fieldBindings[name];
 }
 
 void SoapServerInternal::OnProtobufResponse(::google::protobuf::Message* response, ::google::protobuf::Closure* done, tinyxml2::XMLElement* respNode)
@@ -449,3 +537,5 @@ map<string, ServiceBinding>& SoapServerInternal::GetServiceBindings()
 {
 	return m_soapMappings;
 }
+
+

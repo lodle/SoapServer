@@ -39,9 +39,20 @@ public:
 
 	void GenerateWsdl();
 
+	void AddService(string& serviceName);
+
+	void AddMethod(const string& serviceName, const string& name, const ClassBinding& request, const ClassBinding& response, NativeCallback callback, bool isInput);
 	void AddMethod(const string& service, const string& name, const ClassBinding& request, const ClassBinding& response, ProtobufCallback callback, bool isInput);
+
+	bool HasClassBinding(const type_info& type);
+	const ClassBinding& GetClassBinding(const type_info& type);
+
 	ClassBinding& GetClassBinding(const ::google::protobuf::Descriptor* descriptor);
 	const FieldBinding& GetFieldBinding(const ::google::protobuf::FieldDescriptor* descriptor);
+	const FieldBinding& GetFieldBinding(const string& name, const string& type, size_t offset, size_t size);
+
+	void RegisterClassBinding(const type_info& type, vector<const FieldBinding*>& fields, CreateObjectCallback callback);
+
 
 	virtual void CallMethod(const ::google::protobuf::MethodDescriptor* method,
 		::google::protobuf::RpcController* controller,

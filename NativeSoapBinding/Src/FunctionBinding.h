@@ -11,6 +11,7 @@ class FunctionBinding
 public:
 	FunctionBinding();
 	FunctionBinding(const string& name, const ClassBinding& request, const ClassBinding& response, ProtobufCallback callback, bool isInput);
+	FunctionBinding(const string& name, const ClassBinding& request, const ClassBinding& response, NativeCallback callback, bool isInput);
 
 	tinyxml2::XMLElement* Invoke(tinyxml2::XMLElement* req, tinyxml2::XMLDocument& respDoc);
 
@@ -20,6 +21,7 @@ public:
 
 private:
 	ProtobufCallback m_protobufCallback;
+	NativeCallback m_nativeCallback;
 
 	string m_name;
 	ClassBinding m_requestBinding;

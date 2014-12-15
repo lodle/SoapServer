@@ -8,6 +8,16 @@ FieldBinding::FieldBinding()
 FieldBinding::FieldBinding(const string& name, const string& type)
 	: m_name(name)
 	, m_type(type)
+	, m_offset(-1)
+	, m_size(-1)
+{
+}
+
+FieldBinding::FieldBinding(const string& name, const string& type, size_t offset, size_t size)
+	: m_name(name)
+	, m_type(type)
+	, m_offset(offset)
+	, m_size(size)
 {
 }
 

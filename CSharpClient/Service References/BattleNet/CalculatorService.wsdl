@@ -2,6 +2,21 @@
 <wsdl:definitions xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://Battle.net" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="CalculatorService" targetNamespace="http://Battle.net" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
   <wsdl:types>
     <xs:schema elementFormDefault="qualified" targetNamespace="http://Battle.net" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element name="CNativeCalculatorRequest">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="param1" type="xs:double" />
+            <xs:element minOccurs="0" name="param2" type="xs:double" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="CNativeCalculatorResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="response" type="xs:double" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
       <xs:element name="CalculatorRequest">
         <xs:complexType>
           <xs:sequence>
@@ -59,6 +74,30 @@
   <wsdl:message name="IEcho_Ping_PingResponse_Response">
     <wsdl:part name="parameters" element="tns:PingResponse" />
   </wsdl:message>
+  <wsdl:message name="INativeCalculator_Add_CNativeCalculatorRequest_Request">
+    <wsdl:part name="parameters" element="tns:CNativeCalculatorRequest" />
+  </wsdl:message>
+  <wsdl:message name="INativeCalculator_Add_CNativeCalculatorResponse_Response">
+    <wsdl:part name="parameters" element="tns:CNativeCalculatorResponse" />
+  </wsdl:message>
+  <wsdl:message name="INativeCalculator_Divide_CNativeCalculatorRequest_Request">
+    <wsdl:part name="parameters" element="tns:CNativeCalculatorRequest" />
+  </wsdl:message>
+  <wsdl:message name="INativeCalculator_Divide_CNativeCalculatorResponse_Response">
+    <wsdl:part name="parameters" element="tns:CNativeCalculatorResponse" />
+  </wsdl:message>
+  <wsdl:message name="INativeCalculator_Multiply_CNativeCalculatorRequest_Request">
+    <wsdl:part name="parameters" element="tns:CNativeCalculatorRequest" />
+  </wsdl:message>
+  <wsdl:message name="INativeCalculator_Multiply_CNativeCalculatorResponse_Response">
+    <wsdl:part name="parameters" element="tns:CNativeCalculatorResponse" />
+  </wsdl:message>
+  <wsdl:message name="INativeCalculator_Subtract_CNativeCalculatorRequest_Request">
+    <wsdl:part name="parameters" element="tns:CNativeCalculatorRequest" />
+  </wsdl:message>
+  <wsdl:message name="INativeCalculator_Subtract_CNativeCalculatorResponse_Response">
+    <wsdl:part name="parameters" element="tns:CNativeCalculatorResponse" />
+  </wsdl:message>
   <wsdl:portType name="ICalculator">
     <wsdl:operation name="Add">
       <wsdl:input wsaw:Action="http://Battle.net/ICalculator/Add" message="tns:ICalculator_Add_CalculatorRequest_Request" />
@@ -81,6 +120,24 @@
     <wsdl:operation name="Ping">
       <wsdl:output wsaw:Action="http://Battle.net/IEcho/Ping" message="tns:IEcho_Ping_PingRequest_Request" />
       <wsdl:input wsaw:Action="http://Battle.net/IEcho/PingResponse" message="tns:IEcho_Ping_PingResponse_Response" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="INativeCalculator">
+    <wsdl:operation name="Add">
+      <wsdl:input wsaw:Action="http://Battle.net/INativeCalculator/Add" message="tns:INativeCalculator_Add_CNativeCalculatorRequest_Request" />
+      <wsdl:output wsaw:Action="http://Battle.net/INativeCalculator/AddResponse" message="tns:INativeCalculator_Add_CNativeCalculatorResponse_Response" />
+    </wsdl:operation>
+    <wsdl:operation name="Divide">
+      <wsdl:input wsaw:Action="http://Battle.net/INativeCalculator/Divide" message="tns:INativeCalculator_Divide_CNativeCalculatorRequest_Request" />
+      <wsdl:output wsaw:Action="http://Battle.net/INativeCalculator/DivideResponse" message="tns:INativeCalculator_Divide_CNativeCalculatorResponse_Response" />
+    </wsdl:operation>
+    <wsdl:operation name="Multiply">
+      <wsdl:input wsaw:Action="http://Battle.net/INativeCalculator/Multiply" message="tns:INativeCalculator_Multiply_CNativeCalculatorRequest_Request" />
+      <wsdl:output wsaw:Action="http://Battle.net/INativeCalculator/MultiplyResponse" message="tns:INativeCalculator_Multiply_CNativeCalculatorResponse_Response" />
+    </wsdl:operation>
+    <wsdl:operation name="Subtract">
+      <wsdl:input wsaw:Action="http://Battle.net/INativeCalculator/Subtract" message="tns:INativeCalculator_Subtract_CNativeCalculatorRequest_Request" />
+      <wsdl:output wsaw:Action="http://Battle.net/INativeCalculator/SubtractResponse" message="tns:INativeCalculator_Subtract_CNativeCalculatorResponse_Response" />
     </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="CalculatorService" type="tns:ICalculator">
@@ -134,6 +191,45 @@
       </wsdl:output>
     </wsdl:operation>
   </wsdl:binding>
+  <wsdl:binding name="NativeCalculatorService" type="tns:INativeCalculator">
+    <soap12:binding transport="http://schemas.microsoft.com/soap/tcp" />
+    <wsdl:operation name="Add">
+      <soap12:operation soapAction="http://Battle.net/INativeCalculator/Add" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Divide">
+      <soap12:operation soapAction="http://Battle.net/INativeCalculator/Divide" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Multiply">
+      <soap12:operation soapAction="http://Battle.net/INativeCalculator/Multiply" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Subtract">
+      <soap12:operation soapAction="http://Battle.net/INativeCalculator/Subtract" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
   <wsdl:service name="CalculatorService">
     <wsdl:port name="CalculatorService" binding="tns:CalculatorService">
       <soap12:address location="net.tcp://localhost:666/battlenet/Calculator" />
@@ -142,6 +238,11 @@
   <wsdl:service name="EchoService">
     <wsdl:port name="EchoService" binding="tns:EchoService">
       <soap12:address location="net.tcp://localhost:666/battlenet/Echo" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:service name="NativeCalculatorService">
+    <wsdl:port name="NativeCalculatorService" binding="tns:NativeCalculatorService">
+      <soap12:address location="net.tcp://localhost:666/battlenet/NativeCalculator" />
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

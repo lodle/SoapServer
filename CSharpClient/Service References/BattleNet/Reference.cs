@@ -274,17 +274,16 @@ namespace Microsoft.Samples.NetTcp.BattleNet {
         
         // CODEGEN: Generating message contract since the wrapper name (PingRequest) of message PingSolicit does not match the default value (Ping)
         [System.ServiceModel.OperationContractAttribute(Action="http://Battle.net/IEcho/Ping", ReplyAction="http://Battle.net/IEcho/PingResponse")]
-        global::Microsoft.Samples.NetTcp.BattleNet.PingResponse Ping(global::Microsoft.Samples.NetTcp.BattleNet.PingRequest request);
+        global::Microsoft.Samples.NetTcp.BattleNet.PingResponse Ping(global::Microsoft.Samples.NetTcp.BattleNet.PingSolicit request);
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="PingRequest", WrapperNamespace="http://Battle.net", IsWrapped=true)]
-    public partial class PingRequest
-    {
+    public partial class PingSolicit {
         
-        public PingRequest() {
+        public PingSolicit() {
         }
     }
     
@@ -324,6 +323,259 @@ namespace Microsoft.Samples.NetTcp.BattleNet {
         
         public EchoClient(System.ServiceModel.InstanceContext callbackInstance, System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
                 base(callbackInstance, binding, remoteAddress) {
+        }
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ServiceModel.ServiceContractAttribute(Namespace="http://Battle.net", ConfigurationName="BattleNet.INativeCalculator")]
+    public interface INativeCalculator {
+        
+        // CODEGEN: Generating message contract since the wrapper name (CNativeCalculatorRequest) of message AddRequest does not match the default value (Add)
+        [System.ServiceModel.OperationContractAttribute(Action="http://Battle.net/INativeCalculator/Add", ReplyAction="http://Battle.net/INativeCalculator/AddResponse")]
+        global::Microsoft.Samples.NetTcp.BattleNet.AddResponse1 Add(global::Microsoft.Samples.NetTcp.BattleNet.AddRequest1 request);
+        
+        // CODEGEN: Generating message contract since the wrapper name (CNativeCalculatorRequest) of message DivideRequest does not match the default value (Divide)
+        [System.ServiceModel.OperationContractAttribute(Action="http://Battle.net/INativeCalculator/Divide", ReplyAction="http://Battle.net/INativeCalculator/DivideResponse")]
+        global::Microsoft.Samples.NetTcp.BattleNet.DivideResponse1 Divide(global::Microsoft.Samples.NetTcp.BattleNet.DivideRequest1 request);
+        
+        // CODEGEN: Generating message contract since the wrapper name (CNativeCalculatorRequest) of message MultiplyRequest does not match the default value (Multiply)
+        [System.ServiceModel.OperationContractAttribute(Action="http://Battle.net/INativeCalculator/Multiply", ReplyAction="http://Battle.net/INativeCalculator/MultiplyResponse")]
+        global::Microsoft.Samples.NetTcp.BattleNet.MultiplyResponse1 Multiply(global::Microsoft.Samples.NetTcp.BattleNet.MultiplyRequest1 request);
+        
+        // CODEGEN: Generating message contract since the wrapper name (CNativeCalculatorRequest) of message SubtractRequest does not match the default value (Subtract)
+        [System.ServiceModel.OperationContractAttribute(Action="http://Battle.net/INativeCalculator/Subtract", ReplyAction="http://Battle.net/INativeCalculator/SubtractResponse")]
+        global::Microsoft.Samples.NetTcp.BattleNet.SubtractResponse1 Subtract(global::Microsoft.Samples.NetTcp.BattleNet.SubtractRequest1 request);
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="CNativeCalculatorRequest", WrapperNamespace="http://Battle.net", IsWrapped=true)]
+    public partial class AddRequest1 {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://Battle.net", Order=0)]
+        public double param1;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://Battle.net", Order=1)]
+        public double param2;
+        
+        public AddRequest1() {
+        }
+        
+        public AddRequest1(double param1, double param2) {
+            this.param1 = param1;
+            this.param2 = param2;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="CNativeCalculatorResponse", WrapperNamespace="http://Battle.net", IsWrapped=true)]
+    public partial class AddResponse1 {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://Battle.net", Order=0)]
+        public double response;
+        
+        public AddResponse1() {
+        }
+        
+        public AddResponse1(double response) {
+            this.response = response;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="CNativeCalculatorRequest", WrapperNamespace="http://Battle.net", IsWrapped=true)]
+    public partial class DivideRequest1 {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://Battle.net", Order=0)]
+        public double param1;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://Battle.net", Order=1)]
+        public double param2;
+        
+        public DivideRequest1() {
+        }
+        
+        public DivideRequest1(double param1, double param2) {
+            this.param1 = param1;
+            this.param2 = param2;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="CNativeCalculatorResponse", WrapperNamespace="http://Battle.net", IsWrapped=true)]
+    public partial class DivideResponse1 {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://Battle.net", Order=0)]
+        public double response;
+        
+        public DivideResponse1() {
+        }
+        
+        public DivideResponse1(double response) {
+            this.response = response;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="CNativeCalculatorRequest", WrapperNamespace="http://Battle.net", IsWrapped=true)]
+    public partial class MultiplyRequest1 {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://Battle.net", Order=0)]
+        public double param1;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://Battle.net", Order=1)]
+        public double param2;
+        
+        public MultiplyRequest1() {
+        }
+        
+        public MultiplyRequest1(double param1, double param2) {
+            this.param1 = param1;
+            this.param2 = param2;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="CNativeCalculatorResponse", WrapperNamespace="http://Battle.net", IsWrapped=true)]
+    public partial class MultiplyResponse1 {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://Battle.net", Order=0)]
+        public double response;
+        
+        public MultiplyResponse1() {
+        }
+        
+        public MultiplyResponse1(double response) {
+            this.response = response;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="CNativeCalculatorRequest", WrapperNamespace="http://Battle.net", IsWrapped=true)]
+    public partial class SubtractRequest1 {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://Battle.net", Order=0)]
+        public double param1;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://Battle.net", Order=1)]
+        public double param2;
+        
+        public SubtractRequest1() {
+        }
+        
+        public SubtractRequest1(double param1, double param2) {
+            this.param1 = param1;
+            this.param2 = param2;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="CNativeCalculatorResponse", WrapperNamespace="http://Battle.net", IsWrapped=true)]
+    public partial class SubtractResponse1 {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://Battle.net", Order=0)]
+        public double response;
+        
+        public SubtractResponse1() {
+        }
+        
+        public SubtractResponse1(double response) {
+            this.response = response;
+        }
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    public interface INativeCalculatorChannel : global::Microsoft.Samples.NetTcp.BattleNet.INativeCalculator, System.ServiceModel.IClientChannel {
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    public partial class NativeCalculatorClient : System.ServiceModel.ClientBase<global::Microsoft.Samples.NetTcp.BattleNet.INativeCalculator>, global::Microsoft.Samples.NetTcp.BattleNet.INativeCalculator {
+        
+        public NativeCalculatorClient() {
+        }
+        
+        public NativeCalculatorClient(string endpointConfigurationName) : 
+                base(endpointConfigurationName) {
+        }
+        
+        public NativeCalculatorClient(string endpointConfigurationName, string remoteAddress) : 
+                base(endpointConfigurationName, remoteAddress) {
+        }
+        
+        public NativeCalculatorClient(string endpointConfigurationName, System.ServiceModel.EndpointAddress remoteAddress) : 
+                base(endpointConfigurationName, remoteAddress) {
+        }
+        
+        public NativeCalculatorClient(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
+                base(binding, remoteAddress) {
+        }
+        
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+        global::Microsoft.Samples.NetTcp.BattleNet.AddResponse1 global::Microsoft.Samples.NetTcp.BattleNet.INativeCalculator.Add(global::Microsoft.Samples.NetTcp.BattleNet.AddRequest1 request) {
+            return base.Channel.Add(request);
+        }
+        
+        public double Add(double param1, double param2) {
+            global::Microsoft.Samples.NetTcp.BattleNet.AddRequest1 inValue = new global::Microsoft.Samples.NetTcp.BattleNet.AddRequest1();
+            inValue.param1 = param1;
+            inValue.param2 = param2;
+            global::Microsoft.Samples.NetTcp.BattleNet.AddResponse1 retVal = ((global::Microsoft.Samples.NetTcp.BattleNet.INativeCalculator)(this)).Add(inValue);
+            return retVal.response;
+        }
+        
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+        global::Microsoft.Samples.NetTcp.BattleNet.DivideResponse1 global::Microsoft.Samples.NetTcp.BattleNet.INativeCalculator.Divide(global::Microsoft.Samples.NetTcp.BattleNet.DivideRequest1 request) {
+            return base.Channel.Divide(request);
+        }
+        
+        public double Divide(double param1, double param2) {
+            global::Microsoft.Samples.NetTcp.BattleNet.DivideRequest1 inValue = new global::Microsoft.Samples.NetTcp.BattleNet.DivideRequest1();
+            inValue.param1 = param1;
+            inValue.param2 = param2;
+            global::Microsoft.Samples.NetTcp.BattleNet.DivideResponse1 retVal = ((global::Microsoft.Samples.NetTcp.BattleNet.INativeCalculator)(this)).Divide(inValue);
+            return retVal.response;
+        }
+        
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+        global::Microsoft.Samples.NetTcp.BattleNet.MultiplyResponse1 global::Microsoft.Samples.NetTcp.BattleNet.INativeCalculator.Multiply(global::Microsoft.Samples.NetTcp.BattleNet.MultiplyRequest1 request) {
+            return base.Channel.Multiply(request);
+        }
+        
+        public double Multiply(double param1, double param2) {
+            global::Microsoft.Samples.NetTcp.BattleNet.MultiplyRequest1 inValue = new global::Microsoft.Samples.NetTcp.BattleNet.MultiplyRequest1();
+            inValue.param1 = param1;
+            inValue.param2 = param2;
+            global::Microsoft.Samples.NetTcp.BattleNet.MultiplyResponse1 retVal = ((global::Microsoft.Samples.NetTcp.BattleNet.INativeCalculator)(this)).Multiply(inValue);
+            return retVal.response;
+        }
+        
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+        global::Microsoft.Samples.NetTcp.BattleNet.SubtractResponse1 global::Microsoft.Samples.NetTcp.BattleNet.INativeCalculator.Subtract(global::Microsoft.Samples.NetTcp.BattleNet.SubtractRequest1 request) {
+            return base.Channel.Subtract(request);
+        }
+        
+        public double Subtract(double param1, double param2) {
+            global::Microsoft.Samples.NetTcp.BattleNet.SubtractRequest1 inValue = new global::Microsoft.Samples.NetTcp.BattleNet.SubtractRequest1();
+            inValue.param1 = param1;
+            inValue.param2 = param2;
+            global::Microsoft.Samples.NetTcp.BattleNet.SubtractResponse1 retVal = ((global::Microsoft.Samples.NetTcp.BattleNet.INativeCalculator)(this)).Subtract(inValue);
+            return retVal.response;
         }
     }
 }

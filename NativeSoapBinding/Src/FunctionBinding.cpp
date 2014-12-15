@@ -3,7 +3,7 @@
 #include "tinyxml2.h"
 
 #include "ProtobufClassHelper.h"
-
+#include "NativeClassHelper.h"
 
 FunctionBinding::FunctionBinding()
 {
@@ -17,6 +17,16 @@ FunctionBinding::FunctionBinding(const string& name, const ClassBinding& request
 	, m_isInput(isInput)
 {
 }
+
+FunctionBinding::FunctionBinding(const string& name, const ClassBinding& request, const ClassBinding& response, NativeCallback callback, bool isInput)
+	: m_name(name)
+	, m_requestBinding(request)
+	, m_responseBinding(response)
+	, m_nativeCallback(callback)
+	, m_isInput(isInput)
+{
+}
+
 
 tinyxml2::XMLElement* FunctionBinding::Invoke(tinyxml2::XMLElement* req, tinyxml2::XMLDocument& respDoc)
 {
@@ -33,6 +43,25 @@ tinyxml2::XMLElement* FunctionBinding::Invoke(tinyxml2::XMLElement* req, tinyxml
 		m_protobufCallback(*(request.get()), *response.get());
 
 		vector<tinyxml2::XMLElement*> nodes = m_responseBinding.GetProtobufHelper()->GenerateResponse(response, respDoc);
+
+		tinyxml2::XMLElement* el = respDoc.NewElement(m_responseBinding.GetName().c_str());
+		el->SetAttribute("xmlns", "http://Battle.net");
+
+		for (size_t x = 0; x < nodes.size(); ++x)
+		{
+			el->LinkEndChild(nodes[x]);
+		}
+
+		return el;
+	}
+	else if (m_nativeCallback)
+	{
+		shared_ptr<void> request = m_requestBinding.GetNativeHelper()->CreateObject(req);
+		shared_ptr<void> response = m_responseBinding.GetNativeHelper()->CreateObject();
+
+		m_nativeCallback(request.get(), response.get());
+
+		vector<tinyxml2::XMLElement*> nodes = m_responseBinding.GetNativeHelper()->GenerateResponse(response, respDoc);
 
 		tinyxml2::XMLElement* el = respDoc.NewElement(m_responseBinding.GetName().c_str());
 		el->SetAttribute("xmlns", "http://Battle.net");

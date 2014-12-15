@@ -82,6 +82,7 @@
     <ClInclude Include="Src\FieldBinding.h" />
     <ClInclude Include="Src\FunctionBinding.h" />
     <ClInclude Include="Src\NativeClassHelper.h" />
+    <ClInclude Include="Src\NativeFieldHelper.h" />
     <ClInclude Include="Src\ProtobufClassHelper.h" />
     <ClInclude Include="Src\ProtobufFieldHelper.h" />
     <ClInclude Include="Src\ServiceBinding.h" />
@@ -97,6 +98,7 @@
     <ClCompile Include="Src\FieldBinding.cpp" />
     <ClCompile Include="Src\FunctionBinding.cpp" />
     <ClCompile Include="Src\gsoap.cpp" />
+    <ClCompile Include="Src\NativeFieldHelper.cpp" />
     <ClCompile Include="Src\ProtobufClassHelper.cpp" />
     <ClCompile Include="Src\ProtobufFieldHelper.cpp" />
     <ClCompile Include="Src\ServiceBinding.cpp" />

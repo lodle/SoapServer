@@ -19,6 +19,7 @@ public:
 	ServiceBinding(const string& name);
 
 	void AddBinding(const string& name, const ClassBinding& request, const ClassBinding& response, ProtobufCallback& callback, bool isInput);
+	void AddBinding(const string& name, const ClassBinding& request, const ClassBinding& response, NativeCallback& callback, bool isInput);
 
 	void Invoke(const string& actionUrl, tinyxml2::XMLDocument& respDoc, tinyxml2::XMLElement* reqBody, tinyxml2::XMLElement* respBody);
 
