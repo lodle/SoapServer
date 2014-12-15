@@ -152,7 +152,12 @@ size_t SoapTcpFrame::ProcessHeader(const char* buff, size_t size)
 	};
 
 	struct PreambleAck p;
-	m_soapTcpConnection.Write((char*)&p, 1);
+
+	{
+		lock_guard<mutex> guard(m_soapTcpConnection.GetLock());
+		m_soapTcpConnection.Write((char*)&p, 1);
+	}
+
 	return buffidx;
 }
 
@@ -161,8 +166,12 @@ size_t SoapTcpFrame::ProcessEnd(const char* buff, size_t size)
 	assert(buff[0] == 0x07);
 
 	static char end[1] = { 0x07 };
-	m_soapTcpConnection.Write(end, 1);
-	
+
+	{
+		lock_guard<mutex> guard(m_soapTcpConnection.GetLock());
+		m_soapTcpConnection.Write(end, 1);
+	}
+
 	m_soapTcpConnection.End();
 	return 1;
 }

@@ -206,6 +206,8 @@ void SoapProtocol::SendXml(const tinyxml2::XMLDocument& doc)
 	buff[0] = 0x6;
 	size_t count = EncodePackedInt(const_cast<char*>(buff.c_str() + 1), xml.size());
 
+
+	lock_guard<mutex> guard(m_soap.GetLock());
 	m_soap.Write(buff.c_str(), 1 + count);
 	m_soap.Write(xml.c_str(), xml.size());
 }

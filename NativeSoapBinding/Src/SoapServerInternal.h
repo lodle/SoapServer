@@ -88,4 +88,6 @@ private:
 
 	shared_ptr<Poco::Net::TCPServer> m_soapTcpServer;
 	shared_ptr<Poco::Net::HTTPServer> m_mexHttpServer;
+
+	mutex m_protocolLock;
 };

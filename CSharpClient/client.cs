@@ -31,7 +31,7 @@ namespace Microsoft.Samples.NetTcp
 
             RunNative();
 
-            //RunProtobuf();
+            RunProtobuf();
 
             Console.WriteLine();
             Console.WriteLine("Press <ENTER> to terminate client.");

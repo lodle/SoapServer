@@ -99,6 +99,11 @@ public:
 		return m_internal->GetServiceBindings();
 	}
 
+	virtual mutex& GetLock()
+	{
+		return m_writeLock;
+	}
+
 	virtual void run()
 	{
 		cout << "New connection from: " << socket().peerAddress().host().toString() << endl << flush;
@@ -138,6 +143,8 @@ private:
 	SoapServerInternal* m_internal;
 	string m_bindingName;
 
+	mutex m_writeLock;
+
 	bool m_stop;
 };
 
@@ -172,6 +179,11 @@ public:
 		return *(map<string, ServiceBinding>*)(0);
 	}
 
+	virtual mutex& GetLock()
+	{
+		return m_writeLock;
+	}
+
 	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
 	{
 		response.setStatusAndReason(Poco::Net::HTTPResponse::HTTP_OK);
@@ -201,10 +213,12 @@ public:
 		}		
 	}
 
+private:
 	string m_outbuf;
 
 	SoapProtocol m_soapProtocol;
 	string m_wsdl;
+	mutex m_writeLock;
 };
 
 
@@ -494,6 +508,8 @@ void SoapServerInternal::CallMethod(const ::google::protobuf::MethodDescriptor* 
 			throw exception("Cant find service binding");
 		}
 
+
+		lock_guard<mutex> guard(m_protocolLock);
 		map<string, SoapProtocol*>::iterator sp = m_protocolBindings.find(serviceName);
 
 		if (sp == m_protocolBindings.end())
@@ -530,6 +546,7 @@ void SoapServerInternal::CallMethod(const ::google::protobuf::MethodDescriptor* 
 
 void SoapServerInternal::SetProtocolBinding(const string& url, SoapProtocol* binding)
 {
+	lock_guard<mutex> guard(m_protocolLock);
 	m_protocolBindings[url] = binding;
 }
 

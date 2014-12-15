@@ -7,6 +7,8 @@ public:
 	virtual void SetBindingName(const string& name) = 0;
 	virtual void End() = 0;
 
+	virtual mutex& GetLock() = 0;
+
 	//todo move some where else
 	virtual map<string, ServiceBinding>& GetServiceBindings() = 0;
 };
