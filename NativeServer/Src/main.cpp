@@ -95,7 +95,26 @@ public:
 };
 
 
+class NativeEcho
+{
+public:
+	virtual void Ping(const VoidRequestResponse&, VoidRequestResponse&) = 0;
+};
 
+
+class NativeEcho_Stub : public NativeEcho
+{
+public:
+	NativeEcho_Stub()
+	{
+
+	}
+
+	void Ping(const VoidRequestResponse&, VoidRequestResponse&)
+	{
+
+	}
+};
 
 
 
@@ -115,6 +134,13 @@ static void InvokePing(Echo* echo)
 	echo->Ping(controller, &request, response, google::protobuf::NewCallback(&OnPingResponse, response));
 }
 
+static void InvokeNativePing(NativeEcho* echo)
+{
+	VoidRequestResponse req;
+	VoidRequestResponse resp;
+
+	echo->Ping(req, resp);
+}
 
 
 int main()
@@ -122,6 +148,7 @@ int main()
 	shared_ptr<NativeCalculator> nativeCalc(new NativeCalculator());
 	shared_ptr<Calculator> calc(new CalculatorImpl());
 	shared_ptr<Echo> echo;
+	shared_ptr<NativeEcho> nativeEcho;
 
 	SoapServer server(666, 667);
 
@@ -136,6 +163,11 @@ int main()
 
 	//Bind protobuf to allow us to call client
 	echo = server.BindProtobufOutput<Echo_Stub>();
+
+	server.BindNativeOutbound<NativeEcho>("NativeEcho", nativeEcho)
+		.Function("Ping", &NativeEcho::Ping);
+
+
 
 	server.Start();
 
@@ -154,6 +186,12 @@ int main()
 		{
 			InvokePing(echo.get());
 		}
+		else if (s == "nping")
+		{
+			InvokeNativePing(nativeEcho.get());
+		}
+
+
 	} while (!s.empty());
 
 	server.Stop();

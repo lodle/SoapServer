@@ -62,10 +62,11 @@ template <typename T>
 class SoapNativeFunctionBinder
 {
 public:
-	SoapNativeFunctionBinder(SoapServer* server, const shared_ptr<T>& t, const string& serviceName)
+	SoapNativeFunctionBinder(SoapServer* server, const shared_ptr<T>& t, const string& serviceName, bool input)
 		: m_server(server)
 		, m_serviceName(serviceName)
 		, m_t(t)
+		, m_input(input)
 	{
 	}
 
@@ -76,7 +77,7 @@ public:
 		const ClassBinding& response = m_server->GetClassBinding<R>();
 
 		NativeCallback callback = bind(&CallNative<T, A, R>, m_t, funct, placeholders::_1, placeholders::_2);
-		m_server->AddMethod(m_serviceName, name, request, response, callback, true);
+		m_server->AddMethod(m_serviceName, name, request, response, callback, m_input);
 
 		return *this;
 	}
@@ -85,6 +86,7 @@ private:
 	SoapServer* m_server;
 	string m_serviceName;
 	shared_ptr<T> m_t;
+	bool m_input;
 };
 
 template <typename T>
@@ -161,6 +163,16 @@ private:
 	SoapServer* m_server;
 };
 
+class VoidRequestResponse
+{
+};
+
+inline SoapTypeVisitor& operator<<(SoapTypeVisitor& visitor, const VoidRequestResponse& r)
+{
+	visitor << SoapClassVistior(VoidRequestResponse);
+	return visitor;
+}
+
 
 class SoapServer
 {
@@ -194,8 +206,18 @@ public:
 		string name = serviceName;
 
 		AddService(name);
-		return SoapNativeFunctionBinder<T>(this, t, name);
+		return SoapNativeFunctionBinder<T>(this, t, name, true);
 	}
+
+	template <typename I, typename T>
+	SoapNativeFunctionBinder<T> BindNativeOutbound(const string& serviceName, shared_ptr<T>& t)
+	{
+		string name = serviceName;
+
+		AddService(name);
+		return SoapNativeFunctionBinder<T>(this, t, name, false);
+	}
+
 
 	::google::protobuf::RpcChannel* GetRpcChannel();
 

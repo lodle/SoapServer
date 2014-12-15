@@ -19,15 +19,23 @@ namespace Microsoft.Samples.NetTcp
         }
     }
 
+    class NativeEchoImpl : INativeEchoCallback
+    {
+        public PingResponse1 Ping(PingSolicit1 request)
+        {
+            Console.WriteLine("Native Ping!");
+            return new PingResponse1();
+        }
+    }
+
     //Client implementation code.
     class Client
     {
         static void Main()
         {
-            //InstanceContext site = new InstanceContext(new EchoImpl());
+            RunNativeEcho();
 
-            //EchoClient echo = new EchoClient(site);
-            //echo.Open();
+            RunEcho();
 
             RunNative();
 
@@ -36,6 +44,22 @@ namespace Microsoft.Samples.NetTcp
             Console.WriteLine();
             Console.WriteLine("Press <ENTER> to terminate client.");
             Console.ReadLine();
+        }
+
+        private static void RunNativeEcho()
+        {
+            InstanceContext site = new InstanceContext(new NativeEchoImpl());
+
+            NativeEchoClient echo = new NativeEchoClient(site);
+            echo.Open();
+        }
+
+        private static void RunEcho()
+        {
+            InstanceContext site = new InstanceContext(new EchoImpl());
+
+            EchoClient echo = new EchoClient(site);
+            echo.Open();
         }
 
         private static void RunNative()

@@ -578,4 +578,66 @@ namespace Microsoft.Samples.NetTcp.BattleNet {
             return retVal.response;
         }
     }
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ServiceModel.ServiceContractAttribute(Namespace="http://Battle.net", ConfigurationName="BattleNet.INativeEcho", CallbackContract=typeof(global::Microsoft.Samples.NetTcp.BattleNet.INativeEchoCallback))]
+    public interface INativeEcho {
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    public interface INativeEchoCallback {
+        
+        // CODEGEN: Generating message contract since the wrapper name (CVoidRequestResponse) of message PingSolicit does not match the default value (Ping)
+        [System.ServiceModel.OperationContractAttribute(Action="http://Battle.net/INativeEcho/Ping", ReplyAction="http://Battle.net/INativeEcho/PingResponse")]
+        global::Microsoft.Samples.NetTcp.BattleNet.PingResponse1 Ping(global::Microsoft.Samples.NetTcp.BattleNet.PingSolicit1 request);
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="CVoidRequestResponse", WrapperNamespace="http://Battle.net", IsWrapped=true)]
+    public partial class PingSolicit1 {
+        
+        public PingSolicit1() {
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="CVoidRequestResponse", WrapperNamespace="http://Battle.net", IsWrapped=true)]
+    public partial class PingResponse1 {
+        
+        public PingResponse1() {
+        }
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    public interface INativeEchoChannel : global::Microsoft.Samples.NetTcp.BattleNet.INativeEcho, System.ServiceModel.IClientChannel {
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    public partial class NativeEchoClient : System.ServiceModel.DuplexClientBase<global::Microsoft.Samples.NetTcp.BattleNet.INativeEcho>, global::Microsoft.Samples.NetTcp.BattleNet.INativeEcho {
+        
+        public NativeEchoClient(System.ServiceModel.InstanceContext callbackInstance) : 
+                base(callbackInstance) {
+        }
+        
+        public NativeEchoClient(System.ServiceModel.InstanceContext callbackInstance, string endpointConfigurationName) : 
+                base(callbackInstance, endpointConfigurationName) {
+        }
+        
+        public NativeEchoClient(System.ServiceModel.InstanceContext callbackInstance, string endpointConfigurationName, string remoteAddress) : 
+                base(callbackInstance, endpointConfigurationName, remoteAddress) {
+        }
+        
+        public NativeEchoClient(System.ServiceModel.InstanceContext callbackInstance, string endpointConfigurationName, System.ServiceModel.EndpointAddress remoteAddress) : 
+                base(callbackInstance, endpointConfigurationName, remoteAddress) {
+        }
+        
+        public NativeEchoClient(System.ServiceModel.InstanceContext callbackInstance, System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
+                base(callbackInstance, binding, remoteAddress) {
+        }
+    }
 }

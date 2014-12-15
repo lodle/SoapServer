@@ -17,6 +17,11 @@
           </xs:sequence>
         </xs:complexType>
       </xs:element>
+      <xs:element name="CVoidRequestResponse">
+        <xs:complexType>
+          <xs:sequence />
+        </xs:complexType>
+      </xs:element>
       <xs:element name="CalculatorRequest">
         <xs:complexType>
           <xs:sequence>
@@ -98,6 +103,12 @@
   <wsdl:message name="INativeCalculator_Subtract_CNativeCalculatorResponse_Response">
     <wsdl:part name="parameters" element="tns:CNativeCalculatorResponse" />
   </wsdl:message>
+  <wsdl:message name="INativeEcho_Ping_CVoidRequestResponse_Request">
+    <wsdl:part name="parameters" element="tns:CVoidRequestResponse" />
+  </wsdl:message>
+  <wsdl:message name="INativeEcho_Ping_CVoidRequestResponse_Response">
+    <wsdl:part name="parameters" element="tns:CVoidRequestResponse" />
+  </wsdl:message>
   <wsdl:portType name="ICalculator">
     <wsdl:operation name="Add">
       <wsdl:input wsaw:Action="http://Battle.net/ICalculator/Add" message="tns:ICalculator_Add_CalculatorRequest_Request" />
@@ -138,6 +149,12 @@
     <wsdl:operation name="Subtract">
       <wsdl:input wsaw:Action="http://Battle.net/INativeCalculator/Subtract" message="tns:INativeCalculator_Subtract_CNativeCalculatorRequest_Request" />
       <wsdl:output wsaw:Action="http://Battle.net/INativeCalculator/SubtractResponse" message="tns:INativeCalculator_Subtract_CNativeCalculatorResponse_Response" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="INativeEcho">
+    <wsdl:operation name="Ping">
+      <wsdl:output wsaw:Action="http://Battle.net/INativeEcho/Ping" message="tns:INativeEcho_Ping_CVoidRequestResponse_Request" />
+      <wsdl:input wsaw:Action="http://Battle.net/INativeEcho/PingResponse" message="tns:INativeEcho_Ping_CVoidRequestResponse_Response" />
     </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="CalculatorService" type="tns:ICalculator">
@@ -230,6 +247,18 @@
       </wsdl:output>
     </wsdl:operation>
   </wsdl:binding>
+  <wsdl:binding name="NativeEchoService" type="tns:INativeEcho">
+    <soap12:binding transport="http://schemas.microsoft.com/soap/tcp" />
+    <wsdl:operation name="Ping">
+      <soap12:operation soapAction="http://Battle.net/INativeEcho/Ping" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
   <wsdl:service name="CalculatorService">
     <wsdl:port name="CalculatorService" binding="tns:CalculatorService">
       <soap12:address location="net.tcp://localhost:666/battlenet/Calculator" />
@@ -243,6 +272,11 @@
   <wsdl:service name="NativeCalculatorService">
     <wsdl:port name="NativeCalculatorService" binding="tns:NativeCalculatorService">
       <soap12:address location="net.tcp://localhost:666/battlenet/NativeCalculator" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:service name="NativeEchoService">
+    <wsdl:port name="NativeEchoService" binding="tns:NativeEchoService">
+      <soap12:address location="net.tcp://localhost:666/battlenet/NativeEcho" />
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>
