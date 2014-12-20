@@ -15,7 +15,7 @@ public:
 	NativeFieldHelper(const FieldBinding& field);
 
 	void SetValueToObj(void* obj, tinyxml2::XMLElement* element);
-	void SetValueToXml(void* obj, tinyxml2::XMLElement* element);
+	void SetValueToXml(const void* obj, tinyxml2::XMLElement* element);
 
 	string GetName();
 

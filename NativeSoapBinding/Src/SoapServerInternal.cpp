@@ -19,11 +19,12 @@ static const char* s_Namespaces[] = {
 	"xmlns:wsu", "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" ,
 	"xmlns:soap12", "http://schemas.xmlsoap.org/wsdl/soap12/" ,
 	"xmlns:soapenc", "http://schemas.xmlsoap.org/soap/encoding/" ,
-	"xmlns:tns", "http://Battle.net" ,
+	"xmlns:tns", "http://battle.net",
+  "xmlns:bntypes", "http://battle.net/types",
 	"xmlns:wsa10", "http://www.w3.org/2005/08/addressing" ,
 	"xmlns:wsaw", "http://www.w3.org/2006/05/addressing/wsdl" ,
-	"xmlns:wsa", "http://schemas.xmlsoap.org/ws/2004/08/addressing",
-	0, 0
+  "xmlns:wsa", "http://schemas.xmlsoap.org/ws/2004/08/addressing",
+  0, 0
 };
 
 
@@ -55,6 +56,23 @@ namespace
 
 		return name;
 	}
+}
+
+ofstream s_logFile;
+mutex s_logLock;
+
+void Log(const string& data)
+{
+  lock_guard<mutex> guard(s_logLock);
+
+  if (!s_logFile.is_open())
+  {
+    s_logFile.open("SoapLog.xml");
+    s_logFile << "<Messages>" << endl;
+  }
+
+  s_logFile << data << endl;
+  s_logFile.flush();
 }
 
 class SoapTcpServer : 
@@ -106,7 +124,7 @@ public:
 
 	virtual void run()
 	{
-		cout << "New connection from: " << socket().peerAddress().host().toString() << endl << flush;
+		cout << "New connection from: " << socket().peerAddress().host().toString().c_str() << endl << flush;
 
 		bool isOpen = true;
 
@@ -128,7 +146,7 @@ public:
 				catch (Poco::Exception& exc) 
 				{
 					//Handle your network errors.
-					cerr << "Network error: " << exc.displayText() << endl;
+					cerr << "Network error: " << exc.displayText().c_str() << endl;
 					isOpen = false;
 				}
 			}
@@ -190,26 +208,27 @@ public:
 
 		if (request.getContentType() == "application/soap+xml")
 		{
-			string req(std::istreambuf_iterator<char>(request.stream()), std::istreambuf_iterator<char>());
+      assert(false);
+      //std::string req(std::istreambuf_iterator<char>(request.stream()), std::istreambuf_iterator<char>());
 
-			tinyxml2::XMLDocument reqDoc;
-			reqDoc.Parse(req.c_str());
+			//tinyxml2::XMLDocument reqDoc;
+			//reqDoc.Parse(req.c_str());
 
-			tinyxml2::XMLDocument respDoc;
-			respDoc.LoadFile(m_wsdl.c_str());
+			//tinyxml2::XMLDocument respDoc;
+			//respDoc.LoadFile(m_wsdl.c_str());
 
-			cout << "Sending wsdl via soap" << endl << flush;
+			//cout << "Sending wsdl via soap" << endl << flush;
 
-			m_outbuf = "";
-			m_soapProtocol.SendResponse(reqDoc, respDoc, respDoc.FirstChildElement(), "http://www.w3.org/2005/08/addressing/anonymous");
-			response.sendBuffer(m_outbuf.c_str(), m_outbuf.size());
+			//m_outbuf = "";
+			//m_soapProtocol.SendResponse(reqDoc, respDoc, respDoc.FirstChildElement(), "http://www.w3.org/2005/08/addressing/anonymous");
+			//response.sendBuffer(m_outbuf.c_str(), m_outbuf.size());
 
-			m_outbuf = "";
+			//m_outbuf = "";
 		}
 		else
 		{
 			cout << "Sending wsdl via http" << endl << flush;
-			response.sendFile(m_wsdl, "text/xml");
+			response.sendFile(m_wsdl.c_str(), "text/xml");
 		}		
 	}
 
@@ -248,7 +267,7 @@ public:
 
 	Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request)
 	{
-		cout << "Http request from: " << request.getURI() << endl << flush;
+		cout << "Http request from: " << request.getURI().c_str() << endl << flush;
 		return new MexHTTPRequestHandler(m_wsdl);
 	}
 
@@ -307,13 +326,14 @@ void SoapServerInternal::Stop()
 	m_running = false;
 }
 
+
 void SoapServerInternal::GenerateWsdl()
 {
 	tinyxml2::XMLDocument doc;
 
 	auto root = doc.NewElement("wsdl:definitions");
-	root->SetAttribute("name", "CalculatorService");
-	root->SetAttribute("targetNamespace", "http://Battle.net");
+	root->SetAttribute("name", "BGSService");
+	root->SetAttribute("targetNamespace", "http://battle.net");
 
 	int x = 0;
 
@@ -329,20 +349,54 @@ void SoapServerInternal::GenerateWsdl()
 	auto schema = doc.NewElement("xs:schema");
 
 	schema->SetAttribute("elementFormDefault", "qualified");
-	schema->SetAttribute("targetNamespace", "http://Battle.net");
+	schema->SetAttribute("targetNamespace", "http://battle.net/types");
+  schema->SetAttribute("xmlns:tns", "http://battle.net");
 	schema->SetAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema");
 
 	map<string, ClassBinding>::iterator it = m_classBindings.begin();
 
 	for (; it != m_classBindings.end(); ++it)
 	{
-		schema->LinkEndChild(it->second.GenerateWsdl(&doc));
+    vector<tinyxml2::XMLElement*> nodes = it->second.GenerateWsdl(&doc);
+
+    for (size_t x = 0; x < nodes.size(); ++x)
+    {
+      schema->LinkEndChild(nodes[x]);
+    }
 	}
+
+  map<string, ServiceBinding>::iterator sit = m_soapMappings.begin();
+
+  for (; sit != m_soapMappings.end(); ++sit)
+  {
+    vector<tinyxml2::XMLElement*> nodes = sit->second.GenerateWsdlElements(&doc);
+
+    for (size_t x = 0; x < nodes.size(); ++x)
+    {
+      schema->LinkEndChild(nodes[x]);
+    }
+  }
 
 	types->LinkEndChild(schema);
 	root->LinkEndChild(types);
 
-	map<string, ServiceBinding>::iterator sit = m_soapMappings.begin();
+	sit = m_soapMappings.begin();
+
+
+
+  tinyxml2::XMLElement* portType = doc.NewElement("wsdl:portType");
+  portType->SetAttribute("name", "IBGSService");
+
+	tinyxml2::XMLElement* binding = doc.NewElement("wsdl:binding");
+	binding->SetAttribute("name", "BGSService");
+	binding->SetAttribute("type", "tns:IBGSService");
+
+	tinyxml2::XMLElement* transport = doc.NewElement("soap:binding");
+	transport->SetAttribute("transport", "http://schemas.microsoft.com/soap/tcp");
+	binding->LinkEndChild(transport);
+
+  tinyxml2::XMLElement* service = doc.NewElement("wsdl:service");
+  service->SetAttribute("name", "BGSService");
 
 	for (; sit != m_soapMappings.end(); ++sit)
 	{
@@ -352,7 +406,35 @@ void SoapServerInternal::GenerateWsdl()
 		{
 			root->LinkEndChild(r[x]);
 		}
+
+    r = sit->second.GenerateWsdlPortTypeOperations(&doc);
+
+    for (size_t x = 0; x < r.size(); ++x)
+    {
+      portType->LinkEndChild(r[x]);
+    }
+
+    r = sit->second.GenerateWsdlBindingOperations(&doc);
+
+    for (size_t x = 0; x < r.size(); ++x)
+    {
+      binding->LinkEndChild(r[x]);
+    }
 	}
+  
+  root->LinkEndChild(portType);
+  root->LinkEndChild(binding);
+
+  tinyxml2::XMLElement* port = doc.NewElement("wsdl:port");
+  port->SetAttribute("name", "BGSService");
+  port->SetAttribute("binding", "tns:BGSService");
+
+  tinyxml2::XMLElement* address = doc.NewElement("soap:address");
+  address->SetAttribute("location", "net.tcp://localhost:666/battlenet/BGSService");
+
+  port->LinkEndChild(address);
+  service->LinkEndChild(port);
+  root->LinkEndChild(service);
 
 	doc.SaveFile(m_wsdlPath.c_str());
 }
@@ -364,24 +446,20 @@ void SoapServerInternal::AddService(string& serviceName)
 
 	map<string, ServiceBinding>::iterator it = m_soapMappings.find(serviceName);
 
-	while (it != m_soapMappings.end())
+	if (it == m_soapMappings.end())
 	{
-		serviceName = name + num;
-		++num;
-		it = m_soapMappings.find(name);
+    ServiceBinding sm(serviceName);
+    m_soapMappings[serviceName] = sm;
 	}
-
-	ServiceBinding sm(serviceName);
-	m_soapMappings[serviceName] = sm;
 }
 
-void SoapServerInternal::AddMethod(const string& serviceName, const string& name, const ClassBinding& request, const ClassBinding& response, NativeCallback callback, bool isInput)
+void SoapServerInternal::AddMethod(const string& serviceName, const string& name, const ClassBinding& request, const ClassBinding& response, NativeCallback callback, bool isInput, bool isOneWay)
 {
 	map<string, ServiceBinding>::iterator it = m_soapMappings.find(serviceName);
 
 	if (it != m_soapMappings.end())
 	{
-		it->second.AddBinding(name, request, response, callback, isInput);
+		it->second.AddBinding(name, request, response, callback, isInput, isOneWay);
 	}
 	else
 	{
@@ -389,13 +467,13 @@ void SoapServerInternal::AddMethod(const string& serviceName, const string& name
 	}
 }
 
-void SoapServerInternal::AddMethod(const string& serviceName, const string& name, const ClassBinding& request, const ClassBinding& response, ProtobufCallback callback, bool isInput)
+void SoapServerInternal::AddMethod(const string& serviceName, const string& name, const ClassBinding& request, const ClassBinding& response, ProtobufCallback callback, bool isInput, bool isOneWay)
 {
 	map<string, ServiceBinding>::iterator it = m_soapMappings.find(serviceName);
 
 	if (it != m_soapMappings.end())
 	{
-		it->second.AddBinding(name, request, response, callback, isInput);
+		it->second.AddBinding(name, request, response, callback, isInput, isOneWay);
 	}
 	else
 	{
@@ -436,7 +514,7 @@ ClassBinding& SoapServerInternal::GetClassBinding(const ::google::protobuf::Desc
 {
 	if (m_classBindings.find(descriptor->full_name()) == m_classBindings.end())
 	{
-		ClassBinding binding(descriptor->name(), shared_ptr<ProtobufClassHelper>(new ProtobufClassHelper(descriptor)));
+		ClassBinding binding(descriptor->name(), shared_ptr<ProtobufClassHelper>(new ProtobufClassHelper(*this, descriptor)));
 
 		if (descriptor->containing_type())
 		{
@@ -458,7 +536,7 @@ const FieldBinding& SoapServerInternal::GetFieldBinding(const ::google::protobuf
 {
 	if (m_fieldBindings.find(descriptor->full_name()) == m_fieldBindings.end())
 	{
-		FieldBinding binding(descriptor->name(), descriptor->type_name());
+		FieldBinding binding(descriptor, this);
 		m_fieldBindings[descriptor->full_name()] = binding;
 	}
 
@@ -476,8 +554,18 @@ const FieldBinding& SoapServerInternal::GetFieldBinding(const string& name, cons
 	return m_fieldBindings[name];
 }
 
+void SoapServerInternal::OnNativeResponse(TypeWrapper type, function<void(const void*)> callback, tinyxml2::XMLElement* respNode)
+{
+  const ClassBinding& binding = GetClassBinding(type.get());
+  shared_ptr<ObjectWrapper> obj = binding.GetNativeHelper()->CreateObject(respNode);
+
+  callback(obj->get());
+}
+
 void SoapServerInternal::OnProtobufResponse(::google::protobuf::Message* response, ::google::protobuf::Closure* done, tinyxml2::XMLElement* respNode)
 {
+  Log(string("<ProtobuOutboundRes>") + response->DebugString() + "</ProtobuOutboundRes>");
+
 	assert(response->GetDescriptor()->name() == respNode->Value());
 
 	ClassBinding& binding = GetClassBinding(response->GetDescriptor());
@@ -489,59 +577,101 @@ void SoapServerInternal::OnProtobufResponse(::google::protobuf::Message* respons
 	}
 }
 
+void SoapServerInternal::CallMethod(const string& serviceName, const string& methodName, const void* request, function<void(const void*)> callback, const type_info& reqType, const type_info& respType)
+{
+  SoapProtocol::ResponseCallback responseCallback = bind(&SoapServerInternal::OnNativeResponse, this, TypeWrapper(respType), callback, placeholders::_1);
+  Log(string("<NativeOutboundReq>") + "</NativeOutboundReq>");
+
+  map<string, ServiceBinding>::iterator it = m_soapMappings.find(serviceName);
+
+  if (it == m_soapMappings.end())
+  {
+    throw exception("Cant find service binding");
+  }
+
+  lock_guard<mutex> guard(m_protocolLock);
+  map<string, SoapProtocol*>::iterator sp = m_protocolBindings.begin();
+
+  //if (sp == m_protocolBindings.end())
+  //{
+  //  throw exception("Cant find protocol binding");
+  //}
+
+  tinyxml2::XMLDocument doc;
+
+  const ClassBinding& binding = GetClassBinding(reqType);
+  tinyxml2::XMLElement* resp = binding.GetNativeHelper()->GenerateRequest(methodName, request, doc);
+
+  string actionUrl = it->second.GetActionUrl() + "/" + methodName;
+  sp->second->SendRequest(actionUrl, doc, resp, responseCallback);
+}
 
 void SoapServerInternal::CallMethod(const ::google::protobuf::MethodDescriptor* method,
-	::google::protobuf::RpcController* controller,
-	const ::google::protobuf::Message* request,
-	::google::protobuf::Message* response,
-	::google::protobuf::Closure* done)
+  ::google::protobuf::RpcController* controller,
+  const ::google::protobuf::Message* request,
+  ::google::protobuf::Message* response,
+  ::google::protobuf::Closure* done)
 {
-	string serviceName = method->service()->name();
-	string methodName = method->name();
+  string serviceName = method->service()->name();
+  string methodName = method->name();
 
-	try
-	{
-		map<string, ServiceBinding>::iterator it = m_soapMappings.find(serviceName);
+  SoapProtocol::ResponseCallback callback = bind(&SoapServerInternal::OnProtobufResponse, this, response, done, placeholders::_1);
 
-		if (it == m_soapMappings.end())
-		{
-			throw exception("Cant find service binding");
-		}
+  try
+  {
+    CallMethod(serviceName, methodName, *request, callback);
+  }
+  catch (exception &e)
+  {
+    if (controller)
+    {
+      controller->SetFailed(e.what());
+      controller->Failed();
+    }
+  }
+  catch (...)
+  {
+    if (controller)
+    {
+      controller->SetFailed("Unknown");
+      controller->Failed();
+    }
+  }
+  
+}
 
+void SoapServerInternal::CallMethod(const string& serviceName, const string& methodName, const google::protobuf::Message& request, ::google::protobuf::Message* response, ::google::protobuf::Closure* done)
+{
+  SoapProtocol::ResponseCallback callback = bind(&SoapServerInternal::OnProtobufResponse, this, response, done, placeholders::_1);
+  CallMethod(serviceName, methodName, request, callback);
+}
 
-		lock_guard<mutex> guard(m_protocolLock);
-		map<string, SoapProtocol*>::iterator sp = m_protocolBindings.find(serviceName);
+void SoapServerInternal::CallMethod(const string& serviceName, const string& methodName, const google::protobuf::Message& request, SoapProtocol::ResponseCallback callback)
+{
+  Log(string("<ProtobuOutboundReq>") + request.DebugString() + "</ProtobuOutboundReq>");
 
-		if (sp == m_protocolBindings.end())
-		{
-			throw exception("Cant find protocol binding");
-		}
+  map<string, ServiceBinding>::iterator it = m_soapMappings.find(serviceName);
 
-		tinyxml2::XMLDocument doc;
+  if (it == m_soapMappings.end())
+  {
+    throw exception("Cant find service binding");
+  }
 
+  lock_guard<mutex> guard(m_protocolLock);
+  map<string, SoapProtocol*>::iterator sp = m_protocolBindings.begin();
 
-		ClassBinding& binding = GetClassBinding(request->GetDescriptor());
-		tinyxml2::XMLElement* resp = binding.GetProtobufHelper()->GenerateRequest(*request, doc);
+  //if (sp == m_protocolBindings.end())
+  //{
+  //  throw exception("Cant find protocol binding");
+  //}
 
-		string actionUrl = it->second.GetActionUrl() + "/" + methodName;
-		sp->second->SendRequest(actionUrl, doc, resp, bind(&SoapServerInternal::OnProtobufResponse, this, response, done, placeholders::_1));
-	}
-	catch (exception &e)
-	{
-		if (controller)
-		{
-			controller->SetFailed(e.what());
-			controller->Failed();
-		}
-	}
-	catch (...)
-	{
-		if (controller)
-		{
-			controller->SetFailed("Unknown");
-			controller->Failed();
-		}
-	}
+  tinyxml2::XMLDocument doc;
+
+  ClassBinding& binding = GetClassBinding(request.GetDescriptor());
+  tinyxml2::XMLElement* resp = binding.GetProtobufHelper()->GenerateRequest(methodName, request, doc);
+
+  string actionUrl = it->second.GetActionUrl() + "/" + methodName;
+  sp->second->SendRequest(actionUrl, doc, resp, callback);
 }
 
 void SoapServerInternal::SetProtocolBinding(const string& url, SoapProtocol* binding)

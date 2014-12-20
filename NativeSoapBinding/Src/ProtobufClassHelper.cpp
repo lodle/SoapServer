@@ -6,9 +6,9 @@
 #include "Util.h"
 
 
-ProtobufClassHelper::ProtobufClassHelper(const google::protobuf::Descriptor* descriptor)
+ProtobufClassHelper::ProtobufClassHelper(SoapServerInternal& server, const google::protobuf::Descriptor* descriptor)
 	: m_descriptor(descriptor)
-	, m_fields(GenerateFieldList())
+	, m_fields(GenerateFieldList(server))
 {
 }
 
@@ -37,46 +37,48 @@ void ProtobufClassHelper::FillProtobuf(google::protobuf::Message* obj, tinyxml2:
 	}
 }
 
-vector<tinyxml2::XMLElement*> ProtobufClassHelper::GenerateResponse(const shared_ptr<google::protobuf::Message> &response, tinyxml2::XMLDocument &doc)
+vector<tinyxml2::XMLElement*> ProtobufClassHelper::GenerateResponse(const google::protobuf::Message &response, tinyxml2::XMLDocument &doc)
 {
 	vector<tinyxml2::XMLElement*> res;
 
 	for (size_t x = 0; x < m_fields.size(); ++x)
 	{
-		string name = m_fields[x].GetName();
-		tinyxml2::XMLElement* el = doc.NewElement(name.c_str());
+    auto nodes = m_fields[x].SetValueToXml(response, doc);
 
-		m_fields[x].SetValueToXml(*response.get(), el);
-		res.push_back(el);
+    for (size_t x = 0; x < nodes.size(); ++x)
+    {
+      res.push_back(nodes[x]);
+    }
 	}
 
 	return res;
 }
 
-tinyxml2::XMLElement * ProtobufClassHelper::GenerateRequest(const google::protobuf::Message & request, tinyxml2::XMLDocument & doc)
+tinyxml2::XMLElement * ProtobufClassHelper::GenerateRequest(const string& name, const google::protobuf::Message & request, tinyxml2::XMLDocument & doc)
 {
-	tinyxml2::XMLElement* node = doc.NewElement(request.GetDescriptor()->name().c_str());
-	node->SetAttribute("xmlns", "http://Battle.net");
+	tinyxml2::XMLElement* node = doc.NewElement(name.c_str());
+	node->SetAttribute("xmlns", "http://battle.net/types");
 
 	for (size_t x = 0; x < m_fields.size(); ++x)
 	{
-		string name = m_fields[x].GetName();
-		tinyxml2::XMLElement* el = doc.NewElement(name.c_str());
+    auto nodes = m_fields[x].SetValueToXml(request, doc);
 
-		m_fields[x].SetValueToXml(request, el);
-		node->LinkEndChild(node);
+    for (size_t x = 0; x < nodes.size(); ++x)
+    {
+      node->LinkEndChild(nodes[x]);
+    }
 	}
 
 	return node;
 }
 
-vector<ProtobufFieldHelper> ProtobufClassHelper::GenerateFieldList()
+vector<ProtobufFieldHelper> ProtobufClassHelper::GenerateFieldList(SoapServerInternal& server)
 {
 	vector<ProtobufFieldHelper> ret;
 
 	for (int x = 0; x < m_descriptor->field_count(); ++x)
 	{
-		ret.push_back(ProtobufFieldHelper(m_descriptor->field(x)));
+		ret.push_back(ProtobufFieldHelper(server, m_descriptor->field(x)));
 	}
 
 	return ret;

@@ -22,12 +22,12 @@ public:
 	void SetParent(const ClassBinding& parent);
 	void AddField(const FieldBinding& field);
 
-	tinyxml2::XMLElement* GenerateWsdl(tinyxml2::XMLDocument* doc);
+  vector<tinyxml2::XMLElement*> GenerateWsdl(tinyxml2::XMLDocument* doc);
 
-	string GetName();
+	string GetName() const;
 
-	shared_ptr<ProtobufClassHelper> GetProtobufHelper();
-	shared_ptr<NativeClassHelper> GetNativeHelper();
+	shared_ptr<ProtobufClassHelper> GetProtobufHelper() const;
+	shared_ptr<NativeClassHelper> GetNativeHelper() const;
 
 private:
 	friend class NativeClassHelper;

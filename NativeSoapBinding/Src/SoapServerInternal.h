@@ -29,6 +29,8 @@ namespace Poco
 	}
 }
 
+
+
 class SoapServerInternal : public ::google::protobuf::RpcChannel
 {
 public:
@@ -41,8 +43,8 @@ public:
 
 	void AddService(string& serviceName);
 
-	void AddMethod(const string& serviceName, const string& name, const ClassBinding& request, const ClassBinding& response, NativeCallback callback, bool isInput);
-	void AddMethod(const string& service, const string& name, const ClassBinding& request, const ClassBinding& response, ProtobufCallback callback, bool isInput);
+	void AddMethod(const string& serviceName, const string& name, const ClassBinding& request, const ClassBinding& response, NativeCallback callback, bool isInput, bool isOneWay);
+	void AddMethod(const string& service, const string& name, const ClassBinding& request, const ClassBinding& response, ProtobufCallback callback, bool isInput, bool isOneWay);
 
 	bool HasClassBinding(const type_info& type);
 	const ClassBinding& GetClassBinding(const type_info& type);
@@ -60,12 +62,17 @@ public:
 		::google::protobuf::Message* response,
 		::google::protobuf::Closure* done);
 
+  void CallMethod(const string& serviceName, const string& methodName, const google::protobuf::Message& request, ::google::protobuf::Message* response, ::google::protobuf::Closure* done);
+  void CallMethod(const string& serviceName, const string& methodName, const void* request, function<void(const void*)> callback, const type_info& reqType, const type_info& respType);
 
 	void SetProtocolBinding(const string& url, SoapProtocol* binding);
 
 	map<string, ServiceBinding>& GetServiceBindings();
 
 protected:
+  void CallMethod(const string& serviceName, const string& methodName, const google::protobuf::Message& request, SoapProtocol::ResponseCallback callback);
+
+  void OnNativeResponse(TypeWrapper type, function<void(const void*)> callback, tinyxml2::XMLElement* respNode);
 	void OnProtobufResponse(::google::protobuf::Message* response, ::google::protobuf::Closure* done, tinyxml2::XMLElement* respNode);
 
 	size_t ProcessHeader(const char* buff, size_t size);

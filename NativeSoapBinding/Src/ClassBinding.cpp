@@ -34,12 +34,13 @@ void ClassBinding::AddField(const FieldBinding& field)
 	m_fields.push_back(&field);
 }
 
-tinyxml2::XMLElement* ClassBinding::GenerateWsdl(tinyxml2::XMLDocument* doc)
+vector<tinyxml2::XMLElement*> ClassBinding::GenerateWsdl(tinyxml2::XMLDocument* doc)
 {
-	auto el = doc->NewElement("xs:element");
-	el->SetAttribute("name", m_name.c_str());
+  vector<tinyxml2::XMLElement*> res;
 
 	auto complex = doc->NewElement("xs:complexType");
+  complex->SetAttribute("name", m_name.c_str());
+
 	auto sequence = doc->NewElement("xs:sequence");
 
 	for (size_t x = 0; x < m_fields.size(); ++x)
@@ -48,25 +49,25 @@ tinyxml2::XMLElement* ClassBinding::GenerateWsdl(tinyxml2::XMLDocument* doc)
 	}
 
 	complex->LinkEndChild(sequence);
-	el->LinkEndChild(complex);
-
-	return el;
+  res.push_back(complex);
+ 
+	return res;
 }
 
-string ClassBinding::GetName()
+string ClassBinding::GetName() const
 {
 	return m_name;
 }
 
-shared_ptr<ProtobufClassHelper> ClassBinding::GetProtobufHelper()
+shared_ptr<ProtobufClassHelper> ClassBinding::GetProtobufHelper() const
 {
 	assert(m_protobufHelper);
 	return m_protobufHelper;
 }
 
-shared_ptr<NativeClassHelper> ClassBinding::GetNativeHelper()
+shared_ptr<NativeClassHelper> ClassBinding::GetNativeHelper() const
 {
 	assert(m_nativeHelper);
-	m_nativeHelper->SetClassBinding(this);
+	m_nativeHelper->SetClassBinding(const_cast<ClassBinding*>(this));
 	return m_nativeHelper;
 }

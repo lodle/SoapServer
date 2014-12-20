@@ -5,6 +5,30 @@
 #include "tinyxml2.h"
 
 
+namespace
+{
+  template <typename T>
+  void SetValueToXmlFromMem(const void* obj, tinyxml2::XMLElement* element, const FieldBinding& field)
+  {
+    assert(sizeof(T) == field.GetSize());
+
+    T& t = *reinterpret_cast<T*>((char*)obj + field.GetOffset());
+    string val = ValueToString<T>(t);
+    element->SetText(val.c_str());
+  }
+
+
+  template <typename T>
+  void SetValueToObjFromMem(const void* obj, tinyxml2::XMLElement* element, const FieldBinding& field)
+  {
+    assert(sizeof(T) == field.GetSize());
+
+    T& t = *reinterpret_cast<T*>((char*)obj + field.GetOffset());
+    t = ValueFromString<T>(element->GetText());
+  }
+}
+
+
 NativeFieldHelper::NativeFieldHelper(const FieldBinding& field)
 	: m_field(field)
 {
@@ -16,30 +40,39 @@ void NativeFieldHelper::SetValueToObj(void* obj, tinyxml2::XMLElement* element)
 
 	if (type == "double")
 	{
-		double d = ValueFromString<double>(element->GetText());
-		assert(sizeof(d) == m_field.GetSize());
-
-		memcpy((char*)obj + m_field.GetOffset(), &d, sizeof(d));
+    SetValueToObjFromMem<double>(obj, element, m_field);
 	}
+  else if (type == "int")
+  {
+    SetValueToObjFromMem<int32_t>(obj, element, m_field);
+  }
+  else if (type == "string")
+  {
+    SetValueToObjFromMem<string>(obj, element, m_field);
+  }
 	else
 	{
 		assert(false);
 	}
 }
 
-void NativeFieldHelper::SetValueToXml(void* obj, tinyxml2::XMLElement* element)
+
+void NativeFieldHelper::SetValueToXml(const void* obj, tinyxml2::XMLElement* element)
 {
 	string type = m_field.GetType();
 
 	if (type == "double")
 	{
-		double d;
-		assert(sizeof(d) == m_field.GetSize());
-		memcpy(&d, (char*)obj + m_field.GetOffset(), sizeof(d));
-
-		string val = ValueToString<double>(d);
-		element->SetText(val.c_str());
+    SetValueToXmlFromMem<double>(obj, element, m_field);
 	}
+  else if (type == "int")
+  {
+    SetValueToXmlFromMem<int32_t>(obj, element, m_field);
+  }
+  else if (type == "string")
+  {
+    SetValueToXmlFromMem<string>(obj, element, m_field);
+  }
 	else
 	{
 		assert(false);

@@ -8,14 +8,25 @@ namespace tinyxml2
 	class XMLDocument;
 }
 
+namespace google
+{
+  namespace protobuf
+  {
+    class FieldDescriptor;
+  }
+}
+
+class SoapServerInternal;
+
 class FieldBinding
 {
 public:
 	FieldBinding();
-	FieldBinding(const string& name, const string& type);
+	FieldBinding(const ::google::protobuf::FieldDescriptor* descriptor, SoapServerInternal* server);
 	FieldBinding(const string& name, const string& type, size_t offset, size_t size);
 
 	tinyxml2::XMLElement* GenerateWsdl(tinyxml2::XMLDocument* doc) const;
+
 
 	string GetName() const
 	{
@@ -45,4 +56,11 @@ private:
 
 	size_t m_offset;
 	size_t m_size;
+
+  bool m_optional;
+  bool m_repeated;
+  bool m_enum;
+  bool m_class;
+
+  vector<string> m_enumValues;
 };

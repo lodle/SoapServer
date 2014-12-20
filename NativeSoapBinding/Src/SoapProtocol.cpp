@@ -6,13 +6,21 @@
 #include "SoapServerInternal.h"
 #include "ServiceBinding.h"
 
+void Log(const string& data);
+
+SoapProtocol::SoapProtocol(SoapTcpConnectionI &soap)
+  : m_soap(soap)
+{
+}
 
 void SoapProtocol::HandleRequest(const string & xml, const map<string, ServiceBinding>& bindings)
 {
-	tinyxml2::XMLDocument doc;
-	doc.Parse(xml.c_str(), xml.size());
+  Log(string("<Inbound>") + xml + "</Inbound>");
 
-	tinyxml2::XMLHandle handle(doc.RootElement());
+	shared_ptr<tinyxml2::XMLDocument> doc(new tinyxml2::XMLDocument());
+	doc->Parse(xml.c_str(), xml.size());
+
+	tinyxml2::XMLHandle handle(doc->RootElement());
 	tinyxml2::XMLElement* action = handle.FirstChildElement("s:Header").FirstChildElement("a:Action").ToElement();
 	tinyxml2::XMLElement* relatesTo = handle.FirstChildElement("s:Header").FirstChildElement("a:RelatesTo").ToElement();
 
@@ -35,7 +43,7 @@ void SoapProtocol::HandleRequest(const string & xml, const map<string, ServiceBi
 
 		if (it == m_callbacks.end())
 		{
-			SendFault(doc, exception("Failed to find related message"));
+			SendFault(*doc, exception("Failed to find related message"));
 		}
 		else
 		{
@@ -53,30 +61,31 @@ void SoapProtocol::HandleRequest(const string & xml, const map<string, ServiceBi
 		{
 			if (actionUrl.find(it->second.GetActionUrl()) == 0)
 			{
-				tinyxml2::XMLDocument respDoc;
-				tinyxml2::XMLElement* respBody = respDoc.NewElement("s:Body");
+        shared_ptr<tinyxml2::XMLDocument> respDoc(new tinyxml2::XMLDocument());
+				tinyxml2::XMLElement* respBody = respDoc->NewElement("s:Body");
 
 				try
 				{
-					const_cast<ServiceBinding*>(&it->second)->Invoke(actionUrl, respDoc, reqBody, respBody);
-					SendResponse(doc, respDoc, respBody, actionUrl + "Response");
+          string url = actionUrl + "Response";
+          function<void()> callback = bind(&SoapProtocol::SendResponse, this, doc, respDoc, respBody, url);
+					const_cast<ServiceBinding*>(&it->second)->Invoke(actionUrl, *respDoc, reqBody, respBody, callback);
 				}
 				catch (std::exception& e)
 				{
-					SendFault(doc, e);
+					SendFault(*doc, e);
 				}
 				catch (...)
 				{
-					SendFault(doc, std::exception("Unhandled exception on invoke"));
+					SendFault(*doc, std::exception("Unhanded exception on invoke"));
 				}
 
-				break;
+        return;
 			}
 		}
 
 		if (it == bindings.end())
 		{
-			SendFault(doc, std::exception("Action not understood"));
+			SendFault(*doc, std::exception("Action not understood"));
 		}
 	}
 }
@@ -100,9 +109,31 @@ void SoapProtocol::SendRequest(const string& actionUrl, tinyxml2::XMLDocument &d
 	SendXml(doc);
 }
 
+#include <windows.h>
+
 string SoapProtocol::GenerateGuid()
 {
-	return "uuid:ab4c4001-f089-721c-aae6-f51ec37d3501";
+  GUID guid;
+  HRESULT hCreateGuid = CoCreateGuid(&guid);
+
+  OLECHAR* bstrGuid;
+  StringFromCLSID(guid, &bstrGuid);
+
+  char buff[255];
+
+  int size = WideCharToMultiByte(CP_ACP, // ANSI Code Page
+    0, // No special handling of unmapped chars
+    bstrGuid, // wide-character string to be converted
+    wcslen(bstrGuid),
+    buff,
+    255,
+    NULL, NULL);
+
+  string g = string("uuid:") + string(buff + 1, size - 2);
+
+  ::CoTaskMemFree(bstrGuid);
+
+  return g;
 }
 
 tinyxml2::XMLElement* SoapProtocol::GenerateRequestHeader(tinyxml2::XMLDocument& reqDoc, const string& actionUrl, const string& guid)
@@ -175,22 +206,22 @@ tinyxml2::XMLElement* SoapProtocol::GenerateResponseHeader(const tinyxml2::XMLDo
 	return header;
 }
 
-void SoapProtocol::SendResponse(const tinyxml2::XMLDocument& reqDoc, tinyxml2::XMLDocument& respDoc, tinyxml2::XMLElement* respBody, const string& respUrl)
+void SoapProtocol::SendResponse(shared_ptr<tinyxml2::XMLDocument> reqDoc, shared_ptr<tinyxml2::XMLDocument> respDoc, tinyxml2::XMLElement* respBody, string respUrl)
 {
-	tinyxml2::XMLElement* root = respDoc.NewElement("s:Envelope");
+	tinyxml2::XMLElement* root = respDoc->NewElement("s:Envelope");
 	root->SetAttribute("xmlns:s", "http://schemas.xmlsoap.org/soap/envelope/");
 	root->SetAttribute("xmlns:a", "http://www.w3.org/2005/08/addressing");
 
-	root->LinkEndChild(GenerateResponseHeader(reqDoc, respDoc, respUrl));
+	root->LinkEndChild(GenerateResponseHeader(*reqDoc, *respDoc, respUrl));
 	root->LinkEndChild(respBody);
-	respDoc.LinkEndChild(root);
+	respDoc->LinkEndChild(root);
 
-	SendXml(respDoc);
+	SendXml(*respDoc);
 }
 
 void SoapProtocol::SendXml(const tinyxml2::XMLDocument& doc)
 {
-	tinyxml2::XMLPrinter printer(0, true);
+	tinyxml2::XMLPrinter printer(0, false);
 	doc.Print(&printer);
 
 	string xml(printer.CStr(), printer.CStrSize());
@@ -206,6 +237,7 @@ void SoapProtocol::SendXml(const tinyxml2::XMLDocument& doc)
 	buff[0] = 0x6;
 	size_t count = EncodePackedInt(const_cast<char*>(buff.c_str() + 1), xml.size());
 
+  Log(string("<Outbound>") + xml + "</Outbound>");
 
 	lock_guard<mutex> guard(m_soap.GetLock());
 	m_soap.Write(buff.c_str(), 1 + count);

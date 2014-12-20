@@ -4,6 +4,7 @@
 #include "NativeFieldHelper.h"
 #include "SoapServer.h"
 
+
 class NativeClassHelper
 {
 public:
@@ -18,27 +19,32 @@ public:
 		m_binding = binding;
 	}
 
-	shared_ptr<void> CreateObject()
+	shared_ptr<ObjectWrapper> CreateObject()
 	{
-		return shared_ptr<void>(m_create());
+		return m_create();
 	}
 
-	shared_ptr<void> CreateObject(tinyxml2::XMLElement* request)
+	shared_ptr<ObjectWrapper> CreateObject(tinyxml2::XMLElement* request)
 	{
 		SetupFields();
 
-		shared_ptr<void> obj(m_create());
+		shared_ptr<ObjectWrapper> obj(m_create());
 
 		for (size_t x = 0; x < m_fields.size(); ++x)
 		{
 			string name = m_fields[x].GetName();
-			m_fields[x].SetValueToObj(obj.get(), request->FirstChildElement(name.c_str()));
+      auto el = request->FirstChildElement(name.c_str());
+
+      if (el)
+      {
+        m_fields[x].SetValueToObj(obj.get()->get(), el);
+      }
 		}
 		
 		return obj;
 	}
 
-	vector<tinyxml2::XMLElement*> GenerateResponse(const shared_ptr<void> &response, tinyxml2::XMLDocument &doc)
+	vector<tinyxml2::XMLElement*> GenerateResponse(const void* response, tinyxml2::XMLDocument &doc)
 	{
 		SetupFields();
 
@@ -49,12 +55,29 @@ public:
 			string name = m_fields[x].GetName();
 			tinyxml2::XMLElement* el = doc.NewElement(name.c_str());
 
-			m_fields[x].SetValueToXml(response.get(), el);
+			m_fields[x].SetValueToXml(response, el);
 			res.push_back(el);
 		}
 
 		return res;
 	}
+
+  tinyxml2::XMLElement* GenerateRequest(const string& name, const void* request, tinyxml2::XMLDocument &doc)
+  {
+    tinyxml2::XMLElement* node = doc.NewElement(name.c_str());
+    node->SetAttribute("xmlns", "http://battle.net/types");
+
+    for (size_t x = 0; x < m_fields.size(); ++x)
+    {
+      string name = m_fields[x].GetName();
+      tinyxml2::XMLElement* el = doc.NewElement(name.c_str());
+
+      m_fields[x].SetValueToXml(request, el);
+      node->LinkEndChild(el);
+    }
+
+    return node;
+  }
 
 protected:
 	void SetupFields()

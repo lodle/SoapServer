@@ -17,15 +17,12 @@ class SoapProtocol
 public:
 	typedef function<void(tinyxml2::XMLElement*)> ResponseCallback;
 
-	SoapProtocol(SoapTcpConnectionI &soap)
-		: m_soap(soap)
-	{
-	}
+  SoapProtocol(SoapTcpConnectionI &soap);
 
 	void HandleRequest(const string& xml, const map<string, ServiceBinding>& bindings);
 
 	void SendRequest(const string& actionUrl, tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* payload, ResponseCallback callback);
-	void SendResponse(const tinyxml2::XMLDocument& reqDoc, tinyxml2::XMLDocument& respDoc, tinyxml2::XMLElement* respBody, const string& respUrl);
+	void SendResponse(shared_ptr<tinyxml2::XMLDocument> reqDoc, shared_ptr<tinyxml2::XMLDocument> respDoc, tinyxml2::XMLElement* respBody, string respUrl);
 
 	void SetAddressUrl(const string& url);
 

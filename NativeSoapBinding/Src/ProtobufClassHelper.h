@@ -18,10 +18,12 @@ namespace tinyxml2
 	class XMLDocument;
 }
 
+class SoapServerInternal;
+
 class ProtobufClassHelper
 {
 public:
-	ProtobufClassHelper(const google::protobuf::Descriptor* descriptor);
+	ProtobufClassHelper(SoapServerInternal& server, const google::protobuf::Descriptor* descriptor);
 	~ProtobufClassHelper();
 
 	shared_ptr<google::protobuf::Message> CreateProtobuf();
@@ -29,10 +31,10 @@ public:
 
 	void FillProtobuf(google::protobuf::Message* obj, tinyxml2::XMLElement* request);
 
-	vector<tinyxml2::XMLElement*> GenerateResponse(const shared_ptr<google::protobuf::Message> &response, tinyxml2::XMLDocument &doc);
-	tinyxml2::XMLElement* GenerateRequest(const google::protobuf::Message &request, tinyxml2::XMLDocument &doc);
+	vector<tinyxml2::XMLElement*> GenerateResponse(const google::protobuf::Message &response, tinyxml2::XMLDocument &doc);
+	tinyxml2::XMLElement* GenerateRequest(const string& name, const google::protobuf::Message &request, tinyxml2::XMLDocument &doc);
 
-	vector<ProtobufFieldHelper> GenerateFieldList();
+	vector<ProtobufFieldHelper> GenerateFieldList(SoapServerInternal& server);
 
 private:
 	const google::protobuf::Descriptor* m_descriptor;
