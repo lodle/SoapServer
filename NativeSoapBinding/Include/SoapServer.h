@@ -18,6 +18,14 @@ using namespace std;
 #include "ProtobufSoapServer.h"
 
 
+enum FieldFlags
+{
+  FF_Optional,
+  FF_Repeated,
+  FF_Enum,
+  FF_Class,
+};
+
 
 class SoapServer
 {
@@ -105,7 +113,7 @@ public:
 	
 	void RegisterClassBinding(const type_info& type, vector<const FieldBinding*>& fields, CreateObjectCallback callback);
 
-	const FieldBinding& GetFieldBinding(const string& name, const string& type, size_t offset, size_t size);
+	const FieldBinding& GetFieldBinding(const string& name, const string& type, size_t offset, size_t size, int flags);
 
 	template <typename T>
 	const ClassBinding& GetClassBinding()
@@ -122,6 +130,25 @@ public:
 		return GetClassBinding(typeid(T));
 	}
 
+
+  static int GetFieldFlags(string& typeName)
+  {
+    int flags = FF_Optional;
+
+    if (typeName.find("vector<") == 0 && typeName.back() == '>')
+    {
+      flags |= FF_Repeated;
+      typeName = typeName.substr(7, typeName.size() - 8);
+    }
+
+    if (typeName.find("class") == 0)
+    {
+      flags |= FF_Class;
+      typeName = typeName.substr(5);
+    }
+
+    return flags;
+  }
   
 	template <typename T>
 	const FieldBinding& GetFieldBinding(const string& name, size_t offset)
@@ -130,13 +157,14 @@ public:
     assert(!is_pointer<T>::value);
 
     string typeName = GetSoapTypeName<T>();
+    int flags = GetFieldFlags(typeName);
 
-    if (typeName.find("class") == 0)
+    if (flags & FF_Class)
     {
       GetClassBinding<T>();
     }
 
-		return GetFieldBinding(name, typeName, offset, sizeof(T));
+		return GetFieldBinding(name, typeName, offset, sizeof(T), flags);
 	}
 
   void CallMethod(const string& serviceName, const string& methodName, const google::protobuf::Message& request, ::google::protobuf::Message* response, ::google::protobuf::Closure* done);

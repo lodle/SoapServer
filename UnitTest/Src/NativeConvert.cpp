@@ -21,7 +21,10 @@ namespace
     {
       EXPECT_STREQ(name, GetSoapTypeName<T>().c_str());
 
-      FieldBinding field(name, name, 0, sizeof(T));
+      string typeName = name;
+      int flags = SoapServer::GetFieldFlags(typeName);
+
+      FieldBinding field(name, typeName, 0, sizeof(T), flags);
 
       T d;
 
@@ -40,8 +43,11 @@ namespace
     T GetValuesFromXml(const vector<string>& valuesAsString, const char* name)
     {
       EXPECT_STREQ(name, GetSoapTypeName<T>().c_str());
+      
+      string typeName = name;
+      int flags = SoapServer::GetFieldFlags(typeName);
 
-      FieldBinding field(name, name, 0, sizeof(T));
+      FieldBinding field(name, typeName, 0, sizeof(T), flags);
 
       T d;
 
@@ -69,7 +75,10 @@ namespace
     {
       EXPECT_STREQ(name, GetSoapTypeName<T>().c_str());
 
-      FieldBinding field(name, name, 0, sizeof(T));
+      string typeName = name;
+      int flags = SoapServer::GetFieldFlags(typeName);
+
+      FieldBinding field(name, typeName, 0, sizeof(T), flags);
       NativeFieldHelper helper(0, field);
 
 
@@ -152,23 +161,23 @@ namespace
       : nativeHelper(new NativeClassHelper(0, bind(&ObjectWrapper::Create<AllValues>)))
       , classBinding("AllValues", nativeHelper)
     {
-      fieldBindings.push_back(FieldBinding("string", GetSoapTypeName<string>(), offsetof(AllValues, m_string), sizeof(string)));     
-      fieldBindings.push_back(FieldBinding("double", GetSoapTypeName<double>(), offsetof(AllValues, m_double), sizeof(double)));      
-      fieldBindings.push_back(FieldBinding("float", GetSoapTypeName<float>(), offsetof(AllValues, m_float), sizeof(float)));    
-      fieldBindings.push_back(FieldBinding("int32", GetSoapTypeName<int32_t>(), offsetof(AllValues, m_int32), sizeof(int32_t)));    
-      fieldBindings.push_back(FieldBinding("uint32", GetSoapTypeName<uint32_t>(), offsetof(AllValues, m_uint32), sizeof(uint32_t)));     
-      fieldBindings.push_back(FieldBinding("int64", GetSoapTypeName<int64_t>(), offsetof(AllValues, m_int64), sizeof(int64_t)));     
-      fieldBindings.push_back(FieldBinding("uint64", GetSoapTypeName<uint64_t>(), offsetof(AllValues, m_uint64), sizeof(uint64_t)));
-      fieldBindings.push_back(FieldBinding("bool", GetSoapTypeName<bool>(), offsetof(AllValues, m_bool), sizeof(bool)));
+      Addfield<string>("string", offsetof(AllValues, m_string));
+      Addfield<double>("double", offsetof(AllValues, m_double));
+      Addfield<float>("float", offsetof(AllValues, m_float));
+      Addfield<int32_t>("int32", offsetof(AllValues, m_int32));
+      Addfield<uint32_t>("uint32", offsetof(AllValues, m_uint32));
+      Addfield<int64_t>("int64", offsetof(AllValues, m_int64));
+      Addfield<uint64_t>("uint64", offsetof(AllValues, m_uint64));
+      Addfield<bool>("bool", offsetof(AllValues, m_bool));
 
-      fieldBindings.push_back(FieldBinding("vector_string", GetSoapTypeName<vector<string>>(), offsetof(AllValues, m_vector_string), sizeof(vector<string>)));
-      fieldBindings.push_back(FieldBinding("vector_double", GetSoapTypeName<vector<double>>(), offsetof(AllValues, m_vector_double), sizeof(vector<double>)));
-      fieldBindings.push_back(FieldBinding("vector_float", GetSoapTypeName<vector<float>>(), offsetof(AllValues, m_vector_float), sizeof(vector<float>)));
-      fieldBindings.push_back(FieldBinding("vector_int32", GetSoapTypeName<vector<int32_t>>(), offsetof(AllValues, m_vector_int32), sizeof(vector<int32_t>)));
-      fieldBindings.push_back(FieldBinding("vector_uint32", GetSoapTypeName<vector<uint32_t>>(), offsetof(AllValues, m_vector_uint32), sizeof(vector<uint32_t>)));
-      fieldBindings.push_back(FieldBinding("vector_int64", GetSoapTypeName<vector<int64_t>>(), offsetof(AllValues, m_vector_int64), sizeof(vector<int64_t>)));
-      fieldBindings.push_back(FieldBinding("vector_uint64", GetSoapTypeName<vector<uint64_t>>(), offsetof(AllValues, m_vector_uint64), sizeof(vector<uint64_t>)));
-      fieldBindings.push_back(FieldBinding("vector_bool", GetSoapTypeName<vector<bool>>(), offsetof(AllValues, m_vector_bool), sizeof(vector<bool>)));
+      Addfield<vector<string>>("vector_string", offsetof(AllValues, m_vector_string));
+      Addfield<vector<double>>("vector_double", offsetof(AllValues, m_vector_double));
+      Addfield<vector<float>>("vector_float", offsetof(AllValues, m_vector_float));
+      Addfield<vector<int32_t>>("vector_int32", offsetof(AllValues, m_vector_int32));
+      Addfield<vector<uint32_t>>("vector_uint32", offsetof(AllValues, m_vector_uint32));
+      Addfield<vector<int64_t>>("vector_int64", offsetof(AllValues, m_vector_int64));
+      Addfield<vector<uint64_t>>("vector_uint64", offsetof(AllValues, m_vector_uint64));
+      Addfield<vector<bool>>("vector_bool", offsetof(AllValues, m_vector_bool));
 
       for (size_t x = 0; x < fieldBindings.size(); ++x)
       {
@@ -178,6 +187,14 @@ namespace
       nativeHelper->SetClassBinding(&classBinding);
     }
 
+    template <typename T>
+    void Addfield(const char* name, size_t offset)
+    {
+      string typeName = GetSoapTypeName<T>();
+      int flags = SoapServer::GetFieldFlags(typeName);
+
+      fieldBindings.push_back(FieldBinding(name, typeName, offset, sizeof(T), flags));
+    }
 
     const char* GetXml()
     {

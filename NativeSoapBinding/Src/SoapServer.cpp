@@ -60,9 +60,9 @@ void SoapServer::RegisterClassBinding(const type_info& type, vector<const FieldB
 	m_internal->RegisterClassBinding(type, fields, callback);
 }
 
-const FieldBinding& SoapServer::GetFieldBinding(const string& name, const string& type, size_t offset, size_t size)
+const FieldBinding& SoapServer::GetFieldBinding(const string& name, const string& type, size_t offset, size_t size, int flags)
 {
-	return m_internal->GetFieldBinding(name, type, offset, size);
+	return m_internal->GetFieldBinding(name, type, offset, size, flags);
 }
 
 void SoapServer::CallMethod(const string& serviceName, const string& methodName, const google::protobuf::Message& request, ::google::protobuf::Message* response, ::google::protobuf::Closure* done)

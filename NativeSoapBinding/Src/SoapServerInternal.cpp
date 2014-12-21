@@ -552,11 +552,11 @@ const FieldBinding& SoapServerInternal::GetFieldBinding(const ::google::protobuf
 	return m_fieldBindings[descriptor->full_name()];
 }
 
-const FieldBinding& SoapServerInternal::GetFieldBinding(const string& name, const string& type, size_t offset, size_t size)
+const FieldBinding& SoapServerInternal::GetFieldBinding(const string& name, const string& type, size_t offset, size_t size, int flags)
 {
 	if (m_fieldBindings.find(name) == m_fieldBindings.end())
 	{
-		FieldBinding binding(name, type, offset, size);
+		FieldBinding binding(name, type, offset, size, flags);
 		m_fieldBindings[name] = binding;
 	}
 

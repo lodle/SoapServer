@@ -13,11 +13,18 @@ FieldBinding::FieldBinding(const ::google::protobuf::FieldDescriptor* descriptor
 	, m_type(descriptor->type_name())
 	, m_offset(-1)
 	, m_size(-1)
-  , m_optional(descriptor->is_optional())
-  , m_repeated(descriptor->is_repeated())
-  , m_enum(false)
-  , m_class(false)
+  , m_flags(0)
 {
+  if (descriptor->is_optional())
+  {
+    m_flags |= FF_Optional;
+  }
+
+  if (descriptor->is_repeated())
+  {
+    m_flags |= FF_Repeated;
+  }
+
   switch (descriptor->type())
   {
   case ::google::protobuf::FieldDescriptor::TYPE_STRING:
@@ -55,7 +62,7 @@ FieldBinding::FieldBinding(const ::google::protobuf::FieldDescriptor* descriptor
 
   if (descriptor->enum_type())
   {
-    m_enum = true;
+    m_flags |= FF_Enum;
 
     auto ed = descriptor->enum_type();
 
@@ -67,35 +74,19 @@ FieldBinding::FieldBinding(const ::google::protobuf::FieldDescriptor* descriptor
 
   if (descriptor->message_type())
   {
-    m_class = true;
+    m_flags |= FF_Class;
     m_type = descriptor->message_type()->name();
     server->GetClassBinding(descriptor->message_type());
   }
 }
 
-FieldBinding::FieldBinding(const string& name, const string& type, size_t offset, size_t size)
+FieldBinding::FieldBinding(const string& name, const string& type, size_t offset, size_t size, int flags)
 	: m_name(name)
 	, m_type(type)
 	, m_offset(offset)
 	, m_size(size)
-  , m_optional(true)
-  , m_repeated(false)
-  , m_enum(false)
-  , m_class(false)
+  , m_flags(flags)
 {
-  m_repeated = type.find("vector<") == 0 && type.back() == '>';
-
-  if (m_repeated)
-  {
-    m_type = m_type.substr(8, m_type.size() - 9);
-  }
-
-  m_class = type.find("class:") == 0;
-
-  if (m_class)
-  {
-    m_type = m_type.substr(6);
-  }
 }
 
 tinyxml2::XMLElement* FieldBinding::GenerateWsdl(tinyxml2::XMLDocument* doc) const
@@ -103,7 +94,7 @@ tinyxml2::XMLElement* FieldBinding::GenerateWsdl(tinyxml2::XMLDocument* doc) con
   tinyxml2::XMLElement* el = doc->NewElement("xs:element");
   el->SetAttribute("name", m_name.c_str());
 
-  if (m_enum)
+  if (IsEnum())
   {
     tinyxml2::XMLElement* restriction = doc->NewElement("xs:restriction");
     restriction->SetAttribute("base", "xs:string");
@@ -118,17 +109,17 @@ tinyxml2::XMLElement* FieldBinding::GenerateWsdl(tinyxml2::XMLDocument* doc) con
   }
   else
   {
-    if (m_optional)
+    if (IsOptional())
     {
       el->SetAttribute("minOccurs", "0");
     }
 
-    if (m_repeated)
+    if (IsRepeated())
     {
       el->SetAttribute("maxOccurs", "unbounded");
     }
 
-    if (m_class)
+    if (IsClass())
     {
       el->SetAttribute("type", (string("bntypes:") + m_type).c_str());
     }
@@ -139,4 +130,21 @@ tinyxml2::XMLElement* FieldBinding::GenerateWsdl(tinyxml2::XMLDocument* doc) con
   }
 
 	return el;
+}
+
+string FieldBinding::GetFullType() const
+{
+  string type = GetType();
+
+  if (IsClass())
+  {
+    type = string("class:") + type;
+  }
+
+  if (IsRepeated())
+  {
+    type = string("vector<") + type + ">";
+  }
+
+  return type;
 }

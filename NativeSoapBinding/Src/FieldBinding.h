@@ -2,6 +2,9 @@
 
 #include "std.h"
 
+#include "SoapServer.h"
+
+
 namespace tinyxml2
 {
 	class XMLElement;
@@ -23,10 +26,11 @@ class FieldBinding
 public:
 	FieldBinding();
 	FieldBinding(const ::google::protobuf::FieldDescriptor* descriptor, SoapServerInternal* server);
-	FieldBinding(const string& name, const string& type, size_t offset, size_t size);
+	FieldBinding(const string& name, const string& type, size_t offset, size_t size, int flags);
 
 	tinyxml2::XMLElement* GenerateWsdl(tinyxml2::XMLDocument* doc) const;
 
+  string GetFullType() const;
 
 	string GetName() const
 	{
@@ -52,7 +56,22 @@ public:
 
   bool IsClass() const
   {
-    return m_class;
+    return (m_flags & FF_Class) == FF_Class;
+  }
+
+  bool IsOptional() const
+  {
+    return (m_flags & FF_Optional) == FF_Optional;
+  }
+
+  bool IsEnum() const
+  {
+    return (m_flags & FF_Enum) == FF_Enum;
+  }
+
+  bool IsRepeated() const
+  {
+    return (m_flags & FF_Repeated) == FF_Repeated;
   }
 
 private:
@@ -62,10 +81,7 @@ private:
 	size_t m_offset;
 	size_t m_size;
 
-  bool m_optional;
-  bool m_repeated;
-  bool m_enum;
-  bool m_class;
+  int m_flags;
 
   vector<string> m_enumValues;
 };

@@ -39,6 +39,11 @@ namespace
   template <typename T>
   void SetValueToObjFromMem(const void* obj, tinyxml2::XMLElement* element, const FieldBinding& field)
   {
+    if (sizeof(T) != field.GetSize())
+    {
+      int a = 1;
+    }
+
     assert(sizeof(T) == field.GetSize());
     T& t = *reinterpret_cast<T*>((char*)obj + field.GetOffset());
 
@@ -117,7 +122,7 @@ NativeFieldHelper::NativeFieldHelper(SoapServerInternal* server, const FieldBind
 
 void NativeFieldHelper::SetValueToObj(void* obj, tinyxml2::XMLElement* element)
 {
-  map<string, function<void(void*, tinyxml2::XMLElement*)> >::const_iterator cit = m_xmlToObj.find(m_field.GetType());
+  map<string, function<void(void*, tinyxml2::XMLElement*)> >::const_iterator cit = m_xmlToObj.find(m_field.GetFullType());
 
   if (cit != m_xmlToObj.end())
   {
@@ -138,7 +143,7 @@ void NativeFieldHelper::SetValueToObj(void* obj, tinyxml2::XMLElement* element)
 
 void NativeFieldHelper::SetValueToXml(const void* obj, tinyxml2::XMLElement* element, tinyxml2::XMLDocument& doc)
 {
-  map<string, function<void(const void*, tinyxml2::XMLElement*, tinyxml2::XMLDocument&)> >::const_iterator cit = m_objToXml.find(m_field.GetType());
+  map<string, function<void(const void*, tinyxml2::XMLElement*, tinyxml2::XMLDocument&)> >::const_iterator cit = m_objToXml.find(m_field.GetFullType());
 
   if (cit != m_objToXml.end())
   {

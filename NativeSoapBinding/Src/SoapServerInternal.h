@@ -54,7 +54,7 @@ public:
 
 	ClassBinding& GetClassBinding(const ::google::protobuf::Descriptor* descriptor);
 	const FieldBinding& GetFieldBinding(const ::google::protobuf::FieldDescriptor* descriptor);
-	const FieldBinding& GetFieldBinding(const string& name, const string& type, size_t offset, size_t size);
+	const FieldBinding& GetFieldBinding(const string& name, const string& type, size_t offset, size_t size, int flags);
 
 	void RegisterClassBinding(const type_info& type, vector<const FieldBinding*>& fields, CreateObjectCallback callback);
 
