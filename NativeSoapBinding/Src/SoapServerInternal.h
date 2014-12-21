@@ -49,6 +49,9 @@ public:
 	bool HasClassBinding(const type_info& type);
 	const ClassBinding& GetClassBinding(const type_info& type);
 
+  bool HasClassBinding(const string& type);
+  const ClassBinding& GetClassBinding(const string& type);
+
 	ClassBinding& GetClassBinding(const ::google::protobuf::Descriptor* descriptor);
 	const FieldBinding& GetFieldBinding(const ::google::protobuf::FieldDescriptor* descriptor);
 	const FieldBinding& GetFieldBinding(const string& name, const string& type, size_t offset, size_t size);

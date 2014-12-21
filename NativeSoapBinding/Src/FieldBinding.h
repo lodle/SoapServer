@@ -50,6 +50,11 @@ public:
 		return m_size;
 	}
 
+  bool IsClass() const
+  {
+    return m_class;
+  }
+
 private:
 	string m_name;
 	string m_type;

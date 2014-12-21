@@ -51,7 +51,7 @@ namespace
 
 		if (name.find("class ") == 0)
 		{
-			name = string("C") + name.substr(6);
+			name = string("class:") + name.substr(6);
 		}
 
 		return name;
@@ -359,9 +359,9 @@ void SoapServerInternal::GenerateWsdl()
 	{
     vector<tinyxml2::XMLElement*> nodes = it->second.GenerateWsdl(&doc);
 
-    for (size_t x = 0; x < nodes.size(); ++x)
+    for (size_t y = 0; y < nodes.size(); ++y)
     {
-      schema->LinkEndChild(nodes[x]);
+      schema->LinkEndChild(nodes[y]);
     }
 	}
 
@@ -371,9 +371,9 @@ void SoapServerInternal::GenerateWsdl()
   {
     vector<tinyxml2::XMLElement*> nodes = sit->second.GenerateWsdlElements(&doc);
 
-    for (size_t x = 0; x < nodes.size(); ++x)
+    for (size_t y = 0; y < nodes.size(); ++y)
     {
-      schema->LinkEndChild(nodes[x]);
+      schema->LinkEndChild(nodes[y]);
     }
   }
 
@@ -402,23 +402,23 @@ void SoapServerInternal::GenerateWsdl()
 	{
 		auto r = sit->second.GenerateWsdl(&doc);
 
-		for (size_t x = 0; x < r.size(); ++x)
+		for (size_t y = 0; y < r.size(); ++y)
 		{
-			root->LinkEndChild(r[x]);
+			root->LinkEndChild(r[y]);
 		}
 
     r = sit->second.GenerateWsdlPortTypeOperations(&doc);
 
-    for (size_t x = 0; x < r.size(); ++x)
+    for (size_t y = 0; y < r.size(); ++y)
     {
-      portType->LinkEndChild(r[x]);
+      portType->LinkEndChild(r[y]);
     }
 
     r = sit->second.GenerateWsdlBindingOperations(&doc);
 
-    for (size_t x = 0; x < r.size(); ++x)
+    for (size_t y = 0; y < r.size(); ++y)
     {
-      binding->LinkEndChild(r[x]);
+      binding->LinkEndChild(r[y]);
     }
 	}
   
@@ -484,19 +484,28 @@ void SoapServerInternal::AddMethod(const string& serviceName, const string& name
 
 bool SoapServerInternal::HasClassBinding(const type_info& type)
 {
-	return m_classBindings.find(GetTypeName(type)) != m_classBindings.end();
+  return HasClassBinding(GetTypeName(type));
+}
+
+bool SoapServerInternal::HasClassBinding(const string& type)
+{
+  return m_classBindings.find(type) != m_classBindings.end();
 }
 
 const ClassBinding& SoapServerInternal::GetClassBinding(const type_info& type)
 {
-	assert(HasClassBinding(type));
-	return m_classBindings[GetTypeName(type)];
+  return GetClassBinding(GetTypeName(type));
 }
 
+const ClassBinding& SoapServerInternal::GetClassBinding(const string& type)
+{
+  assert(HasClassBinding(type));
+  return m_classBindings[type];
+}
 
 void SoapServerInternal::RegisterClassBinding(const type_info& type, vector<const FieldBinding*>& fields, CreateObjectCallback callback)
 {
-	shared_ptr<NativeClassHelper> helper(new NativeClassHelper(callback));
+	shared_ptr<NativeClassHelper> helper(new NativeClassHelper(this, callback));
 
 	ClassBinding binding(GetTypeName(type), helper);
 

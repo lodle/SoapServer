@@ -83,6 +83,19 @@ FieldBinding::FieldBinding(const string& name, const string& type, size_t offset
   , m_enum(false)
   , m_class(false)
 {
+  m_repeated = type.find("vector<") == 0 && type.back() == '>';
+
+  if (m_repeated)
+  {
+    m_type = m_type.substr(8, m_type.size() - 9);
+  }
+
+  m_class = type.find("class:") == 0;
+
+  if (m_class)
+  {
+    m_type = m_type.substr(6);
+  }
 }
 
 tinyxml2::XMLElement* FieldBinding::GenerateWsdl(tinyxml2::XMLDocument* doc) const

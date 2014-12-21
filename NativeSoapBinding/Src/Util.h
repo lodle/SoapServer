@@ -5,7 +5,7 @@ template <typename T>
 string ValueToString(T t)
 {
 	ostringstream stream;
-	stream << t;
+	stream << fixed <<  t;
 	return stream.str();
 }
 

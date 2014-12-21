@@ -10,5 +10,7 @@
 #include <assert.h>
 #include <mutex>
 
+#include <fstream>
+
 using namespace std;
 

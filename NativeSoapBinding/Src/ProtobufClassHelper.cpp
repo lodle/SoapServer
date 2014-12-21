@@ -45,9 +45,9 @@ vector<tinyxml2::XMLElement*> ProtobufClassHelper::GenerateResponse(const google
 	{
     auto nodes = m_fields[x].SetValueToXml(response, doc);
 
-    for (size_t x = 0; x < nodes.size(); ++x)
+    for (size_t y = 0; y < nodes.size(); ++y)
     {
-      res.push_back(nodes[x]);
+      res.push_back(nodes[y]);
     }
 	}
 
@@ -63,9 +63,9 @@ tinyxml2::XMLElement * ProtobufClassHelper::GenerateRequest(const string& name, 
 	{
     auto nodes = m_fields[x].SetValueToXml(request, doc);
 
-    for (size_t x = 0; x < nodes.size(); ++x)
+    for (size_t y = 0; y < nodes.size(); ++y)
     {
-      node->LinkEndChild(nodes[x]);
+      node->LinkEndChild(nodes[y]);
     }
 	}
 

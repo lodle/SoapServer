@@ -205,9 +205,9 @@ vector<tinyxml2::XMLElement*> ProtobufFieldHelper::SetValueToXml(const google::p
 
         auto nodes = classBinding.GetProtobufHelper()->GenerateResponse(message, doc);
 
-        for (size_t x = 0; x < nodes.size(); ++x)
+        for (size_t y = 0; y < nodes.size(); ++y)
         {
-          element->LinkEndChild(nodes[x]);
+          element->LinkEndChild(nodes[y]);
         }
 
         res.push_back(element);

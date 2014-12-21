@@ -1,100 +1,39 @@
 #pragma once
 
-
-#include "NativeFieldHelper.h"
 #include "SoapServer.h"
+#include "NativeFieldHelper.h"
+
+class ClassBinding;
+class SoapServerInternal;
+
+namespace tinyxml2
+{
+  class XMLElement;
+  class XMLDocument;
+}
 
 
 class NativeClassHelper
 {
 public:
-	NativeClassHelper(CreateObjectCallback req)
-		: m_create(req)
-		, m_binding(0)
-	{
-	}
+  NativeClassHelper(SoapServerInternal *server, CreateObjectCallback req);
 
-	void SetClassBinding(ClassBinding* binding)
-	{
-		m_binding = binding;
-	}
+  void SetClassBinding(ClassBinding* binding);
 
-	shared_ptr<ObjectWrapper> CreateObject()
-	{
-		return m_create();
-	}
+  shared_ptr<ObjectWrapper> CreateObject();
+  shared_ptr<ObjectWrapper> CreateObject(tinyxml2::XMLElement* request);
 
-	shared_ptr<ObjectWrapper> CreateObject(tinyxml2::XMLElement* request)
-	{
-		SetupFields();
+  void FillObject(void* obj, tinyxml2::XMLElement* request);
 
-		shared_ptr<ObjectWrapper> obj(m_create());
-
-		for (size_t x = 0; x < m_fields.size(); ++x)
-		{
-			string name = m_fields[x].GetName();
-      auto el = request->FirstChildElement(name.c_str());
-
-      if (el)
-      {
-        m_fields[x].SetValueToObj(obj.get()->get(), el);
-      }
-		}
-		
-		return obj;
-	}
-
-	vector<tinyxml2::XMLElement*> GenerateResponse(const void* response, tinyxml2::XMLDocument &doc)
-	{
-		SetupFields();
-
-		vector<tinyxml2::XMLElement*> res;
-
-		for (size_t x = 0; x < m_fields.size(); ++x)
-		{
-			string name = m_fields[x].GetName();
-			tinyxml2::XMLElement* el = doc.NewElement(name.c_str());
-
-			m_fields[x].SetValueToXml(response, el);
-			res.push_back(el);
-		}
-
-		return res;
-	}
-
-  tinyxml2::XMLElement* GenerateRequest(const string& name, const void* request, tinyxml2::XMLDocument &doc)
-  {
-    tinyxml2::XMLElement* node = doc.NewElement(name.c_str());
-    node->SetAttribute("xmlns", "http://battle.net/types");
-
-    for (size_t x = 0; x < m_fields.size(); ++x)
-    {
-      string name = m_fields[x].GetName();
-      tinyxml2::XMLElement* el = doc.NewElement(name.c_str());
-
-      m_fields[x].SetValueToXml(request, el);
-      node->LinkEndChild(el);
-    }
-
-    return node;
-  }
+  vector<tinyxml2::XMLElement*> GenerateResponse(const void* response, tinyxml2::XMLDocument &doc);
+  tinyxml2::XMLElement* GenerateRequest(const string& name, const void* request, tinyxml2::XMLDocument &doc);
 
 protected:
-	void SetupFields()
-	{
-		if (!m_fields.empty())
-		{
-			return;
-		}
-
-		for (size_t x = 0; x < m_binding->m_fields.size(); ++x)
-		{
-			m_fields.push_back(NativeFieldHelper(*m_binding->m_fields[x]));
-		}
-	}
+  void SetupFields();
 
 private:
-	ClassBinding* m_binding;
+  SoapServerInternal *m_server;
+  ClassBinding* m_binding;
 	CreateObjectCallback m_create;
 	vector<NativeFieldHelper> m_fields;
 };

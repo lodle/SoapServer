@@ -60,11 +60,14 @@
     <ClInclude Include="Src\NativeFieldHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\NativeSoapServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\ProtobufSoapServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\gsoap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\SoapServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -96,6 +99,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\NativeFieldHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\NativeClassHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

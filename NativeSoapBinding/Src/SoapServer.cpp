@@ -60,11 +60,6 @@ void SoapServer::RegisterClassBinding(const type_info& type, vector<const FieldB
 	m_internal->RegisterClassBinding(type, fields, callback);
 }
 
-::google::protobuf::RpcChannel* SoapServer::GetRpcChannel()
-{
-	return m_internal;
-}
-
 const FieldBinding& SoapServer::GetFieldBinding(const string& name, const string& type, size_t offset, size_t size)
 {
 	return m_internal->GetFieldBinding(name, type, offset, size);
